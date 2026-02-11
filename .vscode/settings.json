@@ -1,0 +1,8 @@
+{
+	"files.associations": {
+		".als.json": "jsonc",
+		"thread": "c",
+		"vector": "c",
+		"format": "c"
+	}
+}

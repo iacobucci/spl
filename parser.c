@@ -1,0 +1,135 @@
+#include <assert.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "parser.h"
+#include "rule.h"
+
+int PARSER_DEBUG = 0;
+
+char *parse_result_atob(int result) {
+	if (result == MATCHED)
+		return "MATCHED";
+	else
+		return "NON_MATCHED";
+}
+
+parse_result parse_recursive(char *text, rule *r) {
+
+	if (PARSER_DEBUG && text) {
+		printf("[DEBUG] trying to parse text \"%s\" by extracting: ", text);
+		rule_print(r);
+	}
+
+	parse_result result;
+
+	if (r->c != '\0') {
+		if (text[0] != r->c) {
+			// substring not found
+			result.matched = NOT_MATCHED;
+			result.remaining = text;
+			result.c = '\0';
+			return result;
+		} else {
+			// substring found
+			result.matched = MATCHED;
+			result.remaining = text + 1;
+			result.c = text[0];
+
+			rule_callback(r, result.c);
+
+			return result;
+		}
+	}
+	if (r->method == OR) {
+		char *original_text = text;
+		for (int i = 0; i < r->n_childs; i++) {
+			result = parse_recursive(text, r->childs[i]);
+
+			if (result.matched == MATCHED) {
+				rule_callback(r, result.c);
+				return result;
+			}
+		}
+		result.matched = NOT_MATCHED;
+		result.remaining = original_text;
+		return result;
+	}
+	if (r->method == AND) {
+		int matched = MATCHED;
+		char *remaining = text;
+		char *original_text = text;
+
+		for (int i = 0; i < r->n_childs; i++) {
+			result = parse_recursive(remaining, r->childs[i]);
+
+			if (result.matched == NOT_MATCHED) {
+				result.remaining = original_text;
+				return result;
+			}
+
+			remaining = result.remaining;
+		}
+
+		rule_callback(r, result.c);
+
+		result.remaining = remaining;
+		return result;
+	}
+	if (r->method == OPTIONAL) {
+		rule *opt = r->childs[0];
+		result = parse_recursive(text, opt);
+
+		if (result.matched == MATCHED) {
+			rule_callback(r, result.c);
+		}
+		result.matched = MATCHED;
+
+		return result;
+	}
+	if (r->method == ZERO_OR_MORE) {
+		rule *zom = r->childs[0];
+
+		while (1) {
+			result = parse_recursive(text, zom);
+			text = result.remaining;
+
+			if (result.matched == MATCHED) {
+				rule_callback(r, result.c);
+			} else {
+				break;
+			}
+		}
+
+		result.matched = MATCHED;
+		result.remaining = text;
+
+		return result;
+	}
+
+	result.matched = NOT_MATCHED;
+	result.remaining = text;
+
+	return result;
+}
+
+parse_result parse(char *text, rule *r) {
+	parse_result result = parse_recursive(text, r);
+	if (strlen(result.remaining) != 0)
+		result.matched = NOT_MATCHED;
+
+	return result;
+}
+
+void parse_assert(char *text, rule *r, int how) {
+	assert(parse(text, r).matched == how);
+	rule_free(&r);
+	if (PARSER_DEBUG)
+		printf("\n");
+}
+
+void parse_assert_non_free(char *text, rule *r, int how) {
+	assert(parse(text, r).matched == how);
+	if (PARSER_DEBUG)
+		printf("\n");
+}
