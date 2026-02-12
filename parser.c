@@ -124,9 +124,8 @@ parse_result parse_recursive(char *text, rule *r) {
 			if (result.matched != MATCHED)
 				break;
 			else {
-				printf("result node: ");
-				ast_print(result.node);
-				ast_add_sibling(zom_ast, result.node);
+				ast_add_child(zom_ast, result.node);
+				ast_print(zom_ast);
 			}
 		}
 
@@ -134,8 +133,6 @@ parse_result parse_recursive(char *text, rule *r) {
 
 		result.matched = MATCHED;
 		result.node = zom_ast;
-
-		// ast_print(result.node);
 
 		result.remaining = text;
 

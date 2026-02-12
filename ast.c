@@ -45,6 +45,8 @@ ast *ast_add_child(ast *parent, ast *child) {
 }
 
 ast *ast_add_sibling(ast *node, ast *child) {
+	if (node == NULL)
+		return child;
 	if (child == NULL)
 		return node;
 
@@ -109,4 +111,4 @@ void ast_print_recursive(ast *node, int depth, int print_next) {
 	}
 }
 
-void ast_print(ast *node) { ast_print_recursive(node, 0, 0); }
+void ast_print(ast *node) { ast_print_recursive(node, 0, 1); }
