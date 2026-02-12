@@ -36,18 +36,21 @@ parse_result parse_recursive(char *text, rule *r) {
 			result.remaining = text + 1;
 			result.c = text[0];
 
-			rule_callback(r, result.c);
+			rule_callback(r, result.c, END);
 
 			return result;
 		}
 	}
 	if (r->method == OR) {
 		char *original_text = text;
+
+		rule_callback(r, '\0', START);
+
 		for (int i = 0; i < r->n_childs; i++) {
 			result = parse_recursive(text, r->childs[i]);
 
 			if (result.matched == MATCHED) {
-				rule_callback(r, result.c);
+				rule_callback(r, result.c, END);
 				return result;
 			}
 		}
@@ -60,6 +63,8 @@ parse_result parse_recursive(char *text, rule *r) {
 		char *remaining = text;
 		char *original_text = text;
 
+		rule_callback(r, '\0', START);
+
 		for (int i = 0; i < r->n_childs; i++) {
 			result = parse_recursive(remaining, r->childs[i]);
 
@@ -71,7 +76,7 @@ parse_result parse_recursive(char *text, rule *r) {
 			remaining = result.remaining;
 		}
 
-		rule_callback(r, result.c);
+		rule_callback(r, result.c, END);
 
 		result.remaining = remaining;
 		return result;
@@ -80,8 +85,10 @@ parse_result parse_recursive(char *text, rule *r) {
 		rule *opt = r->childs[0];
 		result = parse_recursive(text, opt);
 
+		rule_callback(r, '\0', START);
+
 		if (result.matched == MATCHED) {
-			rule_callback(r, result.c);
+			rule_callback(r, result.c, END);
 		}
 		result.matched = MATCHED;
 
@@ -90,12 +97,14 @@ parse_result parse_recursive(char *text, rule *r) {
 	if (r->method == ZERO_OR_MORE) {
 		rule *zom = r->childs[0];
 
+		rule_callback(r, '\0', START);
+
 		while (1) {
 			result = parse_recursive(text, zom);
 			text = result.remaining;
 
 			if (result.matched == MATCHED) {
-				rule_callback(r, result.c);
+				rule_callback(r, result.c, END);
 			} else {
 				break;
 			}

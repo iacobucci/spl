@@ -143,10 +143,9 @@ void add_string(char c) {
 }
 
 void add_member(char c) {}
-void add_array(char c) { printf("array\n"); }
 
 void start_array(char c) { printf("start array\n"); }
-void end_array(char c) { printf("start array\n"); }
+void end_array(char c) { printf("end array\n"); }
 
 void add_object(char c) {}
 void add_value(char c) {}
@@ -158,8 +157,8 @@ void json_init() {
 	lcb = rule_c('{');
 	rcb = rule_c('}');
 
-	lsb = rule_add_callback(rule_c('['), start_array);
-	rsb = rule_add_callback(rule_c(']'), end_array);
+	lsb = rule_c('[');
+	rsb = rule_c(']');
 
 	space = rule_c(' ');
 	tab = rule_c('\t');
@@ -211,7 +210,7 @@ void json_init() {
 
 	character = rule_add_callback(
 		rule_or(digit, rule_range('a', 'z'), rule_range('A', 'Z'), space, NULL),
-		add_character);
+		add_character, END);
 
 	characters = rule_zero_or_more(character);
 
@@ -247,7 +246,7 @@ void json_init() {
 
 	string = rule_add_callback(
 		rule_and(dq, zero_or_more_optional_escapes_or_characters, dq, NULL),
-		add_string);
+		add_string, END);
 
 	double_dots = rule_c(':');
 
@@ -267,8 +266,10 @@ void json_init() {
 		rule_and(lsb, ws, one_or_more_values, ws, value, ws, rsb, NULL);
 
 	array = rule_add_callback(
-		rule_or(many_elements_array, one_element_array, empty_array, NULL),
-		add_array);
+		rule_add_callback(
+			rule_or(many_elements_array, one_element_array, empty_array, NULL),
+			start_array, START),
+		end_array, END);
 
 	member = rule_and(ws, string, ws, double_dots, ws, value, NULL);
 
@@ -302,7 +303,7 @@ void json_init() {
 	value->childs[3] = null;
 	value->childs[4] = array;
 	value->childs[5] = object;
-	value->callback = add_value;
+	value->callback_end = add_value;
 }
 
 void json_free() { rule_free(&value); }

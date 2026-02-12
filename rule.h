@@ -2,6 +2,8 @@
 
 enum rule_method { ZERO_OR_MORE, AND, OR, OPTIONAL };
 
+enum rule_callback_when { START, END };
+
 typedef struct rule {
 	int method;
 	int id;
@@ -12,7 +14,8 @@ typedef struct rule {
 	struct rule **childs;
 
 	char *name;
-	void (*callback)(char c);
+	void (*callback_end)(char c);
+	void (*callback_start)(char c);
 
 	int already_printed;
 } rule;
@@ -25,7 +28,7 @@ rule *rule_range(char l1, char l2);
 
 rule *rule_add_name(rule *r, char *name);
 
-rule *rule_add_callback(rule *r, void (*callback)(char c));
+rule *rule_add_callback(rule *r, void (*callback)(char c), int where);
 
 rule *rule_or(rule *r0, ...);
 
@@ -43,4 +46,4 @@ void rule_clean_already_printed(rule *r);
 
 void rule_free(rule **rp);
 
-void rule_callback(rule *r, char c);
+void rule_callback(rule *r, char c, int where);
