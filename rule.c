@@ -175,26 +175,59 @@ char *rule_method_atob(int method) {
 	}
 }
 
-void rule_print_recursive(rule *r) {
+void rule_print_recursive(rule *r, int print_comma) {
 	if (r == NULL)
 		return;
 
 	tabs_print(RULE_DEPTH);
 
-	if (r->already_printed == 1) {
-		printf("// ...\n");
-		return;
-	}
-
 	if (r->name == NULL)
 		printf("{ ");
 	else
-		printf("{ name: \"%s\", ", r->name);
+		printf("{ \"name\": \"%s\", ", r->name);
 
 	if (r->c != '\0') {
-		printf("c: \"%c\"", r->c);
+		char c = r->c;
+		switch (c) {
+		case '\t':
+			printf("\"c\": \"\\t\"");
+			break;
+		case '\n':
+			printf("\"c\": \"\\n\"");
+			break;
+		case '\r':
+			printf("\"c\": \"\\r\"");
+			break;
+		case '\b':
+			printf("\"c\": \"\\b\"");
+			break;
+		case '\f':
+			printf("\"c\": \"\\f\"");
+			break;
+		case '\"':
+			printf("\"c\": \"\\\"\"");
+			break;
+		case '\\':
+			printf("\"c\": \"\\\\\"");
+			break;
+		default:
+			printf("\"c\": \"%c\"", c);
+		}
+
 	} else {
-		printf("method: \"%s\", definition: [\n", rule_method_atob(r->method));
+		printf("\"method\": \"%s\", ", rule_method_atob(r->method));
+		if (r->already_printed != 1) {
+			printf("\"definition\": [\n");
+		} else {
+			printf("\"already_printed\": true }");
+
+			if (print_comma)
+				printf(",");
+
+			printf("\n");
+
+			return;
+		}
 	}
 
 	RULE_DEPTH++;
@@ -202,7 +235,7 @@ void rule_print_recursive(rule *r) {
 	if (r->already_printed != 1) {
 		r->already_printed = 1;
 		for (int i = 0; i < r->n_childs; i++) {
-			rule_print_recursive(r->childs[i]);
+			rule_print_recursive(r->childs[i], (i + 1 < r->n_childs));
 		}
 	}
 
@@ -215,7 +248,7 @@ void rule_print_recursive(rule *r) {
 		printf(" }");
 	}
 
-	if (RULE_DEPTH)
+	if (print_comma)
 		printf(",");
 
 	printf("\n");
@@ -233,7 +266,7 @@ void rule_clean_already_printed(rule *r) {
 
 void rule_print(rule *r) {
 	rule_clean_already_printed(r);
-	rule_print_recursive(r);
+	rule_print_recursive(r, 0);
 }
 
 void rule_free(rule **rp) {

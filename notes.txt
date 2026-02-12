@@ -1,0 +1,4 @@
+or (value)
+	or (array)
+		and (many_elements_array)
+			] (character)

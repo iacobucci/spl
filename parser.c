@@ -64,6 +64,7 @@ parse_result parse_recursive(char *text, rule *r) {
 				return result;
 			}
 		}
+
 		result.matched = NOT_MATCHED;
 		result.remaining = original_text;
 		return result;
@@ -73,26 +74,29 @@ parse_result parse_recursive(char *text, rule *r) {
 		char *remaining = text;
 		char *original_text = text;
 
+		ast *ast_and = ast_new("and");
+
 		rule_callback(r, '\0', START);
 
 		for (int i = 0; i < r->n_childs; i++) {
 			result = parse_recursive(remaining, r->childs[i]);
 
-			if (result.matched == NOT_MATCHED) {
+			if (result.matched != MATCHED) {
 				result.remaining = original_text;
 				return result;
 			}
 
+			printf("%i\n", result.node == NULL);
+			// ast_print(result.node);
+			// ast_add_child(ast_and, result.node);
 			remaining = result.remaining;
 		}
-
-		child = result.node;
-		result.node = ast_new("and");
-		ast_add_child(result.node, child);
 
 		rule_callback(r, result.c, END);
 
 		result.remaining = remaining;
+		result.node = ast_and;
+
 		return result;
 	}
 	if (r->method == OPTIONAL) {
@@ -113,6 +117,7 @@ parse_result parse_recursive(char *text, rule *r) {
 	}
 	if (r->method == ZERO_OR_MORE) {
 		rule *zom = r->childs[0];
+
 		ast *zom_ast = ast_new("zom");
 
 		rule_callback(r, '\0', START);
@@ -121,11 +126,10 @@ parse_result parse_recursive(char *text, rule *r) {
 			result = parse_recursive(text, zom);
 			text = result.remaining;
 
-			if (result.matched != MATCHED)
+			if (result.matched != MATCHED) {
 				break;
-			else {
+			} else {
 				ast_add_child(zom_ast, result.node);
-				ast_print(zom_ast);
 			}
 		}
 

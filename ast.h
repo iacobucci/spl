@@ -17,6 +17,8 @@ ast *ast_add_sibling(ast *parent, ast *sibling);
 
 ast *ast_pop(ast *node);
 
+ast *ast_get_root(ast *node);
+
 void ast_free(ast **np);
 
 void ast_print(ast *node);

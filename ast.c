@@ -80,6 +80,12 @@ ast *ast_pop(ast *node) {
 	return node;
 }
 
+ast *ast_get_root(ast *node) {
+	while (node->parent != NULL)
+		node = node->parent;
+	return node;
+}
+
 void ast_free(ast **np) {
 	if (np == NULL || *np == NULL) {
 		return;

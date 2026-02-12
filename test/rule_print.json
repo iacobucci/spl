@@ -1,0 +1,284 @@
+{ "method": "OR", "definition": [
+	{ "method": "AND", "definition": [
+		{ "method": "OPTIONAL", "definition": [
+			{ "c": "-" }
+		]},
+		{ "method": "OR", "definition": [
+			{ "c": "0" },
+			{ "method": "AND", "definition": [
+				{ "method": "OR", "definition": [
+					{ "c": "1" },
+					{ "c": "2" },
+					{ "c": "3" },
+					{ "c": "4" },
+					{ "c": "5" },
+					{ "c": "6" },
+					{ "c": "7" },
+					{ "c": "8" },
+					{ "c": "9" }
+				]},
+				{ "method": "ZERO_OR_MORE", "definition": [
+					{ "method": "OR", "definition": [
+						{ "method": "OR",  "already_printed": true },
+						{ "c": "0" }
+					]}
+				]}
+			]}
+		]},
+		{ "method": "OPTIONAL", "definition": [
+			{ "method": "AND", "definition": [
+				{ "c": "." },
+				{ "method": "AND", "definition": [
+					{ "method": "OR",  "already_printed": true },
+					{ "method": "ZERO_OR_MORE", "definition": [
+						{ "method": "OR",  "already_printed": true }
+					]}
+				]}
+			]}
+		]},
+		{ "method": "OPTIONAL", "definition": [
+			{ "method": "AND", "definition": [
+				{ "method": "OR", "definition": [
+					{ "c": "e" },
+					{ "c": "E" }
+				]},
+				{ "method": "OPTIONAL", "definition": [
+					{ "method": "OR", "definition": [
+						{ "c": "-" },
+						{ "c": "+" }
+					]}
+				]},
+				{ "method": "AND",  "already_printed": true }
+			]}
+		]}
+	]},
+	{ "method": "AND", "definition": [
+		{ "c": "\"" },
+		{ "method": "ZERO_OR_MORE", "definition": [
+			{ "method": "OR", "definition": [
+				{ "method": "OR", "definition": [
+					{ "method": "OR",  "already_printed": true },
+					{ "method": "OR", "definition": [
+						{ "c": "a" },
+						{ "c": "b" },
+						{ "c": "c" },
+						{ "c": "d" },
+						{ "c": "e" },
+						{ "c": "f" },
+						{ "c": "g" },
+						{ "c": "h" },
+						{ "c": "i" },
+						{ "c": "j" },
+						{ "c": "k" },
+						{ "c": "l" },
+						{ "c": "m" },
+						{ "c": "n" },
+						{ "c": "o" },
+						{ "c": "p" },
+						{ "c": "q" },
+						{ "c": "r" },
+						{ "c": "s" },
+						{ "c": "t" },
+						{ "c": "u" },
+						{ "c": "v" },
+						{ "c": "w" },
+						{ "c": "x" },
+						{ "c": "y" },
+						{ "c": "z" }
+					]},
+					{ "method": "OR", "definition": [
+						{ "c": "A" },
+						{ "c": "B" },
+						{ "c": "C" },
+						{ "c": "D" },
+						{ "c": "E" },
+						{ "c": "F" },
+						{ "c": "G" },
+						{ "c": "H" },
+						{ "c": "I" },
+						{ "c": "J" },
+						{ "c": "K" },
+						{ "c": "L" },
+						{ "c": "M" },
+						{ "c": "N" },
+						{ "c": "O" },
+						{ "c": "P" },
+						{ "c": "Q" },
+						{ "c": "R" },
+						{ "c": "S" },
+						{ "c": "T" },
+						{ "c": "U" },
+						{ "c": "V" },
+						{ "c": "W" },
+						{ "c": "X" },
+						{ "c": "Y" },
+						{ "c": "Z" }
+					]},
+					{ "c": " " }
+				]},
+				{ "method": "OR", "definition": [
+					{ "method": "AND", "definition": [
+						{ "c": "\\" },
+						{ "c": "u" },
+						{ "method": "OR", "definition": [
+							{ "method": "OR", "definition": [
+								{ "c": "a" },
+								{ "c": "b" },
+								{ "c": "c" },
+								{ "c": "d" },
+								{ "c": "e" },
+								{ "c": "f" }
+							]},
+							{ "method": "OR", "definition": [
+								{ "c": "A" },
+								{ "c": "B" },
+								{ "c": "C" },
+								{ "c": "D" },
+								{ "c": "E" },
+								{ "c": "F" }
+							]},
+							{ "method": "OR",  "already_printed": true }
+						]},
+						{ "method": "OR",  "already_printed": true },
+						{ "method": "OR",  "already_printed": true },
+						{ "method": "OR",  "already_printed": true }
+					]},
+					{ "method": "AND", "definition": [
+						{ "c": "\\" },
+						{ "c": "\\" }
+					]},
+					{ "method": "AND", "definition": [
+						{ "c": "\\" },
+						{ "c": "/" }
+					]},
+					{ "method": "AND", "definition": [
+						{ "c": "\\" },
+						{ "c": "b" }
+					]},
+					{ "method": "AND", "definition": [
+						{ "c": "\\" },
+						{ "c": "f" }
+					]},
+					{ "method": "AND", "definition": [
+						{ "c": "\\" },
+						{ "c": "n" }
+					]},
+					{ "method": "AND", "definition": [
+						{ "c": "\\" },
+						{ "c": "r" }
+					]},
+					{ "method": "AND", "definition": [
+						{ "c": "\\" },
+						{ "c": "t" }
+					]},
+					{ "method": "AND", "definition": [
+						{ "c": "\\" },
+						{ "c": "\"" }
+					]}
+				]}
+			]}
+		]},
+		{ "c": "\"" }
+	]},
+	{ "method": "OR", "definition": [
+		{ "method": "AND", "definition": [
+			{ "c": "f" },
+			{ "c": "a" },
+			{ "c": "l" },
+			{ "c": "s" },
+			{ "c": "e" }
+		]},
+		{ "method": "AND", "definition": [
+			{ "c": "t" },
+			{ "c": "r" },
+			{ "c": "u" },
+			{ "c": "e" }
+		]}
+	]},
+	{ "method": "AND", "definition": [
+		{ "c": "n" },
+		{ "c": "u" },
+		{ "c": "l" },
+		{ "c": "l" }
+	]},
+	{ "method": "OR", "definition": [
+		{ "method": "AND", "definition": [
+			{ "c": "[" },
+			{ "method": "ZERO_OR_MORE", "definition": [
+				{ "method": "OR", "definition": [
+					{ "c": " " },
+					{ "c": "\t" },
+					{ "c": "\n" },
+					{ "c": "\r" }
+				]}
+			]},
+			{ "method": "AND", "definition": [
+				{ "method": "AND", "definition": [
+					{ "method": "OR",  "already_printed": true },
+					{ "method": "ZERO_OR_MORE",  "already_printed": true },
+					{ "c": "," },
+					{ "method": "ZERO_OR_MORE",  "already_printed": true }
+				]},
+				{ "method": "ZERO_OR_MORE", "definition": [
+					{ "method": "AND",  "already_printed": true }
+				]}
+			]},
+			{ "method": "ZERO_OR_MORE",  "already_printed": true },
+			{ "method": "OR",  "already_printed": true },
+			{ "method": "ZERO_OR_MORE",  "already_printed": true },
+			{ "c": "]" }
+		]},
+		{ "method": "AND", "definition": [
+			{ "c": "[" },
+			{ "method": "ZERO_OR_MORE",  "already_printed": true },
+			{ "method": "OR",  "already_printed": true },
+			{ "method": "ZERO_OR_MORE",  "already_printed": true },
+			{ "c": "]" }
+		]},
+		{ "method": "AND", "definition": [
+			{ "c": "[" },
+			{ "method": "ZERO_OR_MORE",  "already_printed": true },
+			{ "c": "]" }
+		]}
+	]},
+	{ "method": "OR", "definition": [
+		{ "method": "AND", "definition": [
+			{ "c": "{" },
+			{ "method": "ZERO_OR_MORE",  "already_printed": true },
+			{ "c": "}" }
+		]},
+		{ "method": "AND", "definition": [
+			{ "c": "{" },
+			{ "method": "ZERO_OR_MORE",  "already_printed": true },
+			{ "method": "AND", "definition": [
+				{ "method": "ZERO_OR_MORE",  "already_printed": true },
+				{ "method": "AND",  "already_printed": true },
+				{ "method": "ZERO_OR_MORE",  "already_printed": true },
+				{ "c": ":" },
+				{ "method": "ZERO_OR_MORE",  "already_printed": true },
+				{ "method": "OR",  "already_printed": true }
+			]},
+			{ "method": "ZERO_OR_MORE",  "already_printed": true },
+			{ "c": "}" }
+		]},
+		{ "method": "AND", "definition": [
+			{ "c": "{" },
+			{ "method": "ZERO_OR_MORE",  "already_printed": true },
+			{ "method": "AND", "definition": [
+				{ "method": "AND", "definition": [
+					{ "method": "AND",  "already_printed": true },
+					{ "method": "ZERO_OR_MORE",  "already_printed": true },
+					{ "c": "," },
+					{ "method": "ZERO_OR_MORE",  "already_printed": true }
+				]},
+				{ "method": "ZERO_OR_MORE", "definition": [
+					{ "method": "AND",  "already_printed": true }
+				]}
+			]},
+			{ "method": "ZERO_OR_MORE",  "already_printed": true },
+			{ "method": "AND",  "already_printed": true },
+			{ "method": "ZERO_OR_MORE",  "already_printed": true },
+			{ "c": "}" }
+		]}
+	]}
+]}
