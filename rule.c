@@ -251,7 +251,6 @@ void rule_free(rule **rp) {
 }
 
 void rule_callback(rule *r, char c) {
-
 	if (r->callback != NULL) {
 		r->callback(c);
 	}

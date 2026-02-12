@@ -1,11 +1,11 @@
 MAKEFLAGS += --silent
 
 main.out: main.c
-	gcc -g main.c json.c parser.c rule.c utils.c -o main.out
+	make compile
 	./main.out
 
 compile:
-	gcc -g main.c json.c parser.c rule.c utils.c -o main.out
+	gcc -g main.c ast.c json.c parser.c rule.c utils.c -o main.out
 
 dev:
 	make main.out

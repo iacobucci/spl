@@ -121,7 +121,11 @@ rule *boolean;
 
 rule *null;
 
-void print_character(char c) { printf("char: %c\n", c); }
+void add_character(char c) { printf("char: %c\n", c); }
+
+void add_string(char c) { printf("string\n"); }
+
+void add_value(char c) { printf("value\n"); }
 
 void json_init() {
 	lcb = rule_c('{');
@@ -180,7 +184,7 @@ void json_init() {
 
 	character = rule_add_callback(
 		rule_or(digit, rule_range('a', 'z'), rule_range('A', 'Z'), space, NULL),
-		print_character);
+		add_character);
 
 	characters = rule_zero_or_more(character);
 
@@ -215,8 +219,9 @@ void json_init() {
 	zero_or_more_optional_escapes_or_characters =
 		rule_zero_or_more(rule_or(character, escape, NULL));
 
-	string =
-		rule_and(dq, zero_or_more_optional_escapes_or_characters, dq, NULL);
+	string = rule_add_callback(
+		rule_and(dq, zero_or_more_optional_escapes_or_characters, dq, NULL),
+		add_string);
 
 	double_dots = rule_c(':');
 
@@ -235,7 +240,7 @@ void json_init() {
 	many_elements_array =
 		rule_and(lsb, ws, one_or_more_values, ws, value, ws, rsb, NULL);
 
-	array = rule_or(empty_array, one_element_array, many_elements_array, NULL);
+	array = rule_or(many_elements_array, one_element_array, empty_array, NULL);
 
 	member = rule_and(ws, string, ws, double_dots, ws, value, NULL);
 
@@ -269,31 +274,32 @@ void json_init() {
 	value->childs[3] = null;
 	value->childs[4] = array;
 	value->childs[5] = object;
+	value->callback = add_value;
 }
 
 void json_free() { rule_free(&value); }
 
 void json_test() {
-	parse_assert_non_free(" \t\t  ", ws, MATCHED);
-	parse_assert_non_free("1", non_zero_digit, MATCHED);
-	parse_assert_non_free("0", digit, MATCHED);
-	parse_assert_non_free("012300", one_or_more_digits, MATCHED);
-	parse_assert_non_free("12300", non_zero_starting_digits, MATCHED);
-	parse_assert_non_free(".0001", decimal_part, MATCHED);
-	parse_assert_non_free("e-12", exponential_part, MATCHED);
-	parse_assert_non_free("-1230.445e-8", number, MATCHED);
-	parse_assert_non_free("0.1E-8", number, MATCHED);
-	parse_assert_non_free("abC4d", characters, MATCHED);
-	parse_assert_non_free("\\u1ab0", escaped_unicode, MATCHED);
-	parse_assert_non_free("\"\\u1ab0 \\\"ciao\\\"\"", string, MATCHED);
-	parse_assert_non_free("{}", value, MATCHED);
-	parse_assert_non_free("[1,2,3,[4,5,6]]", value, MATCHED);
-	parse_assert_non_free("{\"ciao\":10}", value, MATCHED);
-	parse_assert_non_free("{\"ciao\":{\"cane\":10}}", value, MATCHED);
-	parse_assert_non_free(
+	parse_assert(" \t\t  ", ws, MATCHED);
+	parse_assert("1", non_zero_digit, MATCHED);
+	parse_assert("0", digit, MATCHED);
+	parse_assert("012300", one_or_more_digits, MATCHED);
+	parse_assert("12300", non_zero_starting_digits, MATCHED);
+	parse_assert(".0001", decimal_part, MATCHED);
+	parse_assert("e-12", exponential_part, MATCHED);
+	parse_assert("-1230.445e-8", number, MATCHED);
+	parse_assert("0.1E-8", number, MATCHED);
+	parse_assert("abC4d", characters, MATCHED);
+	parse_assert("\\u1ab0", escaped_unicode, MATCHED);
+	parse_assert("\"\\u1ab0 \\\"ciao\\\"\"", string, MATCHED);
+	parse_assert("{}", value, MATCHED);
+	parse_assert("[1,2,3,[4,5,6]]", value, MATCHED);
+	parse_assert("{\"ciao\":10}", value, MATCHED);
+	parse_assert("{\"ciao\":{\"cane\":10}}", value, MATCHED);
+	parse_assert(
 		"{\"cane\": [1, -1, 0.34234, -723.23, 2E10, -0.12e226]}", value,
 		MATCHED);
-	parse_assert_non_free(
+	parse_assert(
 		"{\"cane\": [1, -1, 0.34234, -723.23, 2E10, "
 		"-0.12e226, null], \"CAPRA\": {\"cavallo\"  :false} }",
 		value, MATCHED);

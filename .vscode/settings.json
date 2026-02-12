@@ -3,6 +3,24 @@
 		".als.json": "jsonc",
 		"thread": "c",
 		"vector": "c",
-		"format": "c"
+		"format": "c",
+		"__node_handle": "c",
+		"charconv": "c",
+		"chrono": "c",
+		"optional": "c",
+		"ratio": "c",
+		"system_error": "c",
+		"array": "c",
+		"functional": "c",
+		"regex": "c",
+		"tuple": "c",
+		"type_traits": "c",
+		"utility": "c",
+		"__bit_reference": "c",
+		"bitset": "c",
+		"deque": "c",
+		"limits": "c",
+		"locale": "c",
+		"string.h": "c"
 	}
 }
