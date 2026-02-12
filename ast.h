@@ -13,6 +13,8 @@ ast *ast_new(char *content);
 
 ast *ast_add_child(ast *parent, char *content);
 
+ast *ast_pop(ast *node);
+
 void ast_free(ast **np);
 
 void ast_print(ast *node);

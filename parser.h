@@ -1,5 +1,6 @@
 #pragma once
 #include "rule.h"
+#include "ast.h"
 
 enum parse_result_match { MATCHED, NOT_MATCHED };
 
@@ -7,6 +8,7 @@ typedef struct parse_result {
 	int matched;
 	char *remaining;
 	char c;
+	ast *node;
 } parse_result;
 
 parse_result parse(char *text, rule *r);

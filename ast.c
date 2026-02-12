@@ -2,8 +2,8 @@
 #include "utils.h"
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 ast *ast_new(char *content) {
 	ast *result = malloc(sizeof(ast));
@@ -40,6 +40,23 @@ ast *ast_add_child(ast *parent, char *content) {
 	}
 
 	return child;
+}
+
+ast *ast_pop(ast *node) {
+	ast *temp = node;
+	while (1) {
+		if (temp->next == NULL)
+			break;
+
+		if (temp->next->next == NULL) {
+			ast_free(&temp->next);
+			break;
+		}
+
+		temp = temp->next;
+	}
+
+	return node;
 }
 
 void ast_free(ast **np) {

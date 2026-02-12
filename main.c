@@ -10,10 +10,17 @@ int main() {
 	json_init();
 	// json_test();
 
-	parse_result pr = parse("[\"ciao\", \"cane\", [ 1 ], \"casa\"]", value);
+	parse_result pr = parse("[\"ciao\", \"cane\", [ \"capra\" ], \"casa\"]", value);
 
-	printf("\n");
-	ast_print(root);
+	ast_print(pr.node);
+
+	// printf("\n");
+	// ast_print(root);
+
+	// printf("\n");
+	// ast_pop(root->child);
+	// ast_print(root);
+
 
 	printf("\n\n");
 

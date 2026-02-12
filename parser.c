@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "ast.h"
 #include "parser.h"
 #include "rule.h"
 
@@ -22,6 +23,7 @@ parse_result parse_recursive(char *text, rule *r) {
 	}
 
 	parse_result result;
+	ast *child;
 
 	if (r->c != '\0') {
 		if (text[0] != r->c) {
@@ -35,6 +37,9 @@ parse_result parse_recursive(char *text, rule *r) {
 			result.matched = MATCHED;
 			result.remaining = text + 1;
 			result.c = text[0];
+
+			result.node = ast_new("x");
+			result.node->content[0] = result.c;
 
 			rule_callback(r, result.c, END);
 
@@ -50,6 +55,11 @@ parse_result parse_recursive(char *text, rule *r) {
 			result = parse_recursive(text, r->childs[i]);
 
 			if (result.matched == MATCHED) {
+
+				child = result.node;
+				result.node = ast_new("or");
+				result.node->child = child;
+
 				rule_callback(r, result.c, END);
 				return result;
 			}
@@ -76,6 +86,10 @@ parse_result parse_recursive(char *text, rule *r) {
 			remaining = result.remaining;
 		}
 
+		child = result.node;
+		result.node = ast_new("and");
+		result.node->child = child;
+
 		rule_callback(r, result.c, END);
 
 		result.remaining = remaining;
@@ -84,6 +98,10 @@ parse_result parse_recursive(char *text, rule *r) {
 	if (r->method == OPTIONAL) {
 		rule *opt = r->childs[0];
 		result = parse_recursive(text, opt);
+
+		child = result.node;
+		result.node = ast_new("opt");
+		result.node->child = child;
 
 		rule_callback(r, '\0', START);
 
@@ -96,6 +114,10 @@ parse_result parse_recursive(char *text, rule *r) {
 	}
 	if (r->method == ZERO_OR_MORE) {
 		rule *zom = r->childs[0];
+
+		child = result.node;
+		result.node = ast_new("zom");
+		result.node->child = child;
 
 		rule_callback(r, '\0', START);
 
