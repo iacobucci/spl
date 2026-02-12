@@ -2,8 +2,6 @@
 #include "rule.h"
 #include "ast.h"
 
-extern ast *root;
-
 extern rule *lcb;
 extern rule *rcb;
 

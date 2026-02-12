@@ -41,15 +41,13 @@ parse_result parse_recursive(char *text, rule *r) {
 			result.node = ast_new("x");
 			result.node->content[0] = result.c;
 
-			rule_callback(r, result.c, END);
+			rule_callback(r, result.c);
 
 			return result;
 		}
 	}
 	if (r->method == OR) {
 		char *original_text = text;
-
-		rule_callback(r, '\0', START);
 
 		for (int i = 0; i < r->n_childs; i++) {
 			result = parse_recursive(text, r->childs[i]);
@@ -60,7 +58,7 @@ parse_result parse_recursive(char *text, rule *r) {
 				result.node = ast_new("or");
 				ast_add_child(result.node, child);
 
-				rule_callback(r, result.c, END);
+				rule_callback(r, result.c);
 				return result;
 			}
 		}
@@ -76,8 +74,6 @@ parse_result parse_recursive(char *text, rule *r) {
 
 		ast *ast_and = ast_new("and");
 
-		rule_callback(r, '\0', START);
-
 		for (int i = 0; i < r->n_childs; i++) {
 			result = parse_recursive(remaining, r->childs[i]);
 
@@ -90,7 +86,7 @@ parse_result parse_recursive(char *text, rule *r) {
 			remaining = result.remaining;
 		}
 
-		rule_callback(r, result.c, END);
+		rule_callback(r, result.c);
 
 		result.remaining = remaining;
 		result.node = ast_and;
@@ -101,14 +97,12 @@ parse_result parse_recursive(char *text, rule *r) {
 		rule *opt = r->childs[0];
 		result = parse_recursive(text, opt);
 
-		rule_callback(r, '\0', START);
-
 		child = result.node;
 		result.node = ast_new("opt");
 
 		if (result.matched == MATCHED) {
 			ast_add_child(result.node, child);
-			rule_callback(r, result.c, END);
+			rule_callback(r, result.c);
 		}
 
 		result.matched = MATCHED;
@@ -119,8 +113,6 @@ parse_result parse_recursive(char *text, rule *r) {
 		rule *zom = r->childs[0];
 
 		ast *zom_ast = ast_new("zom");
-
-		rule_callback(r, '\0', START);
 
 		while (1) {
 			result = parse_recursive(text, zom);
@@ -133,7 +125,7 @@ parse_result parse_recursive(char *text, rule *r) {
 			}
 		}
 
-		rule_callback(r, result.c, END);
+		rule_callback(r, result.c);
 
 		result.matched = MATCHED;
 		result.node = zom_ast;

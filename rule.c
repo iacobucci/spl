@@ -25,11 +25,8 @@ rule *rule_add_name(rule *r, char *name) {
 	return r;
 }
 
-rule *rule_add_callback(rule *r, void (*callback)(char c), int where) {
-	if (where == END)
-		r->callback_end = callback;
-	if (where == START)
-		r->callback_start = callback;
+rule *rule_add_callback(rule *r, void (*callback)(char c)) {
+	r->callback = callback;
 	return r;
 }
 
@@ -286,9 +283,7 @@ void rule_free(rule **rp) {
 	*rp = NULL;
 }
 
-void rule_callback(rule *r, char c, int where) {
-	if (where == END && r->callback_end != NULL)
-		r->callback_end(c);
-	if (where == START && r->callback_start != NULL)
-		r->callback_start(c);
+void rule_callback(rule *r, char c) {
+	if (r->callback != NULL)
+		r->callback(c);
 }
