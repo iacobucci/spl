@@ -103,12 +103,14 @@ parse_result parse_recursive(char *text, rule *r) {
 
 		rule_callback(r, '\0', START);
 
+		child = result.node;
+		result.node = ast_new("opt");
+
 		if (result.matched == MATCHED) {
-			child = result.node;
-			result.node = ast_new("opt");
 			ast_add_child(result.node, child);
 			rule_callback(r, result.c, END);
 		}
+
 		result.matched = MATCHED;
 
 		return result;

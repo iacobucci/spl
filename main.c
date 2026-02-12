@@ -16,7 +16,7 @@ int main() {
 
 	// json_test();
 
-	// pr = parse("[\"ciao\", \"cane\", [ \"capra\" ], \"casa\"]", value);
+	pr = parse("[\"ciao\", \"cane\", [ \"capra\" ], \"casa\"]", value);
 	// pr = parse("1", value);
 
 	// rule *r1 = rule_or(rule_zero_or_more(rule_c('x')), rule_c('y'), NULL);
@@ -24,17 +24,13 @@ int main() {
 	// rule *r1 = rule_or(rule_or(rule_c('x'), NULL), rule_or(rule_c('y'),
 	// NULL), 				   rule_or(rule_c('z'), NULL), NULL);
 
-	// rule *r1 =
-	// 	rule_and(rule_c('a'),
-	// 			 rule_zero_or_more(rule_and(rule_c('b'), rule_c('c'), NULL)),
-	// 			 rule_or(rule_c('x'), rule_and(rule_c('y'), rule_c('u'), NULL),
-	// 					 rule_c('z'), NULL),
-	// 			 NULL);
-
-	// BUG:
-	rule *r1 = rule_one_or_more(rule_and(rule_c('a'), rule_c('b')));
-
-	pr = parse("abab", r1);
+	// rule *r1 = rule_and(
+	// 	rule_c('a'), rule_one_or_more(rule_and(rule_c('b'), rule_c('c'), NULL)),
+	// 	rule_or(rule_c('x'), rule_and(rule_c('y'), rule_c('u'), NULL),
+	// 			rule_c('z'), NULL),
+	// 	NULL);
+	//
+	// pr = parse("abcbcx", r1);
 
 	ast_print(ast_get_root(pr.node));
 	printf("%s\n", (pr.matched == MATCHED) ? "matched" : "not matched");
