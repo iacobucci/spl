@@ -24,6 +24,7 @@
 		"string.h": "c",
 		"stdio.h": "c",
 		"stdarg.h": "c",
-		"assert.h": "c"
+		"assert.h": "c",
+		"unistd.h": "c"
 	}
 }

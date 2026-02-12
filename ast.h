@@ -11,7 +11,9 @@ typedef struct ast {
 
 ast *ast_new(char *content);
 
-ast *ast_add_child(ast *parent, char *content);
+ast *ast_add_child(ast *parent, ast *child);
+
+ast *ast_add_sibling(ast *parent, ast *sibling);
 
 ast *ast_pop(ast *node);
 

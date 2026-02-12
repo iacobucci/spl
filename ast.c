@@ -16,8 +16,10 @@ ast *ast_new(char *content) {
 	return result;
 }
 
-ast *ast_add_child(ast *parent, char *content) {
-	ast *child = ast_new(content);
+ast *ast_add_child(ast *parent, ast *child) {
+	if (child == NULL)
+		return parent;
+
 	child->parent = parent;
 	parent->n_childs++;
 
@@ -38,6 +40,23 @@ ast *ast_add_child(ast *parent, char *content) {
 		ith_child = ith_child->next;
 		prev_child = ith_child->prev;
 	}
+
+	return child;
+}
+
+ast *ast_add_sibling(ast *node, ast *child) {
+	if (child == NULL)
+		return node;
+
+	ast *prev = NULL;
+
+	while (node->next != NULL) {
+		node = node->next;
+		prev = node;
+	}
+
+	node->next = child;
+	node->prev = prev;
 
 	return child;
 }

@@ -138,7 +138,7 @@ void add_character(char c) {
 void add_string(char c) {
 	buffer[buffer_index] = '\0';
 	printf("%s\n", buffer);
-	ast_add_child(current, buffer);
+	ast_add_child(current, ast_new(buffer));
 	buffer_index = 0;
 }
 

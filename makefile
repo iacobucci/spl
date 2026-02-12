@@ -13,4 +13,4 @@ dev:
 	make main.out
 	ls *.c *.h | entr make main.out
 
-.PHONY: dev compile
+.PHONY: dev compile main.out
