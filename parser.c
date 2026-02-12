@@ -86,9 +86,7 @@ parse_result parse_recursive(char *text, rule *r) {
 				return result;
 			}
 
-			printf("%i\n", result.node == NULL);
-			// ast_print(result.node);
-			// ast_add_child(ast_and, result.node);
+			ast_add_child(ast_and, result.node);
 			remaining = result.remaining;
 		}
 
