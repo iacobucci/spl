@@ -1,11 +1,13 @@
 MAKEFLAGS += --silent
 
-main.out: main.c
+SRCS := $(wildcard *.c)
+
+main.out: $(SRCS)
 	make compile
 	./main.out
 
 compile:
-	gcc -g main.c ast.c json.c parser.c rule.c utils.c -o main.out
+	gcc -g $(SRCS) -o main.out
 
 dev:
 	make main.out

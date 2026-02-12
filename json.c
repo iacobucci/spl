@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "ast.h"
 #include "json.h"
 #include "parser.h"
 #include "rule.h"
@@ -67,7 +68,7 @@ rule *backslash;
 rule *escaped_unicode;
 rule *escaped_quotation_mark;
 rule *escaped_backslash;
-rule *escaped_forewards_slash;
+rule *escaped_forward_slash;
 rule *escaped_backspace;
 rule *escaped_formfeed;
 rule *escaped_linefeed;
@@ -121,18 +122,44 @@ rule *boolean;
 
 rule *null;
 
-void add_character(char c) { printf("char: %c\n", c); }
+// TODO: rollback
 
-void add_string(char c) { printf("string\n"); }
+char buffer[100];
+int buffer_index = 0;
 
-void add_value(char c) { printf("value\n"); }
+ast *root;
+ast *current;
+
+void add_character(char c) {
+	buffer[buffer_index] = c;
+	buffer_index++;
+}
+
+void add_string(char c) {
+	buffer[buffer_index] = '\0';
+	printf("%s\n", buffer);
+	ast_add_child(current, buffer);
+	buffer_index = 0;
+}
+
+void add_member(char c) {}
+void add_array(char c) { printf("array\n"); }
+
+void start_array(char c) { printf("start array\n"); }
+void end_array(char c) { printf("start array\n"); }
+
+void add_object(char c) {}
+void add_value(char c) {}
 
 void json_init() {
+	root = ast_new("root");
+	current = root;
+
 	lcb = rule_c('{');
 	rcb = rule_c('}');
 
-	lsb = rule_c('[');
-	rsb = rule_c(']');
+	lsb = rule_add_callback(rule_c('['), start_array);
+	rsb = rule_add_callback(rule_c(']'), end_array);
 
 	space = rule_c(' ');
 	tab = rule_c('\t');
@@ -199,7 +226,7 @@ void json_init() {
 
 	escaped_backslash = rule_and(backslash, backslash, NULL);
 
-	escaped_forewards_slash = rule_and(backslash, rule_c('/'), NULL);
+	escaped_forward_slash = rule_and(backslash, rule_c('/'), NULL);
 
 	escaped_backspace = rule_and(backslash, rule_c('b'), NULL);
 
@@ -211,10 +238,9 @@ void json_init() {
 
 	escaped_tab = rule_and(backslash, rule_c('t'), NULL);
 
-	escape =
-		rule_or(escaped_unicode, escaped_backslash, escaped_forewards_slash,
-				escaped_backspace, escaped_formfeed, escaped_linefeed,
-				escaped_cr, escaped_tab, escaped_quotation_mark, NULL);
+	escape = rule_or(escaped_unicode, escaped_backslash, escaped_forward_slash,
+					 escaped_backspace, escaped_formfeed, escaped_linefeed,
+					 escaped_cr, escaped_tab, escaped_quotation_mark, NULL);
 
 	zero_or_more_optional_escapes_or_characters =
 		rule_zero_or_more(rule_or(character, escape, NULL));
@@ -240,7 +266,9 @@ void json_init() {
 	many_elements_array =
 		rule_and(lsb, ws, one_or_more_values, ws, value, ws, rsb, NULL);
 
-	array = rule_or(many_elements_array, one_element_array, empty_array, NULL);
+	array = rule_add_callback(
+		rule_or(many_elements_array, one_element_array, empty_array, NULL),
+		add_array);
 
 	member = rule_and(ws, string, ws, double_dots, ws, value, NULL);
 
@@ -296,11 +324,9 @@ void json_test() {
 	parse_assert("[1,2,3,[4,5,6]]", value, MATCHED);
 	parse_assert("{\"ciao\":10}", value, MATCHED);
 	parse_assert("{\"ciao\":{\"cane\":10}}", value, MATCHED);
-	parse_assert(
-		"{\"cane\": [1, -1, 0.34234, -723.23, 2E10, -0.12e226]}", value,
-		MATCHED);
-	parse_assert(
-		"{\"cane\": [1, -1, 0.34234, -723.23, 2E10, "
-		"-0.12e226, null], \"CAPRA\": {\"cavallo\"  :false} }",
-		value, MATCHED);
+	parse_assert("{\"cane\": [1, -1, 0.34234, -723.23, 2E10, -0.12e226]}",
+				 value, MATCHED);
+	parse_assert("{\"cane\": [1, -1, 0.34234, -723.23, 2E10, "
+				 "-0.12e226, null], \"CAPRA\": {\"cavallo\"  :false} }",
+				 value, MATCHED);
 }
