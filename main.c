@@ -38,7 +38,8 @@ int main() {
 	ast *sub = ast_collapse_childs(root);
 	ast_print(sub);
 
-	sub = ast_collapse_childs(sub->child);
+	// TODO: make into a function
+	sub = ast_collapse_childs(sub->child->next->next->child->child);
 	ast_print(sub);
 
 	printf("%s\n", (pr.matched == MATCHED) ? "matched" : "not matched");
