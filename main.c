@@ -16,7 +16,7 @@ int main() {
 
 	// json_test();
 
-	pr = parse("[\"ciao\", \"cane\", [ \"capra\" ], \"casa\"]", value);
+	pr = parse("[\"ciao\"]", value);
 	// pr = parse("1", value);
 
 	// rule *r1 = rule_or(rule_zero_or_more(rule_c('x')), rule_c('y'), NULL);
@@ -30,9 +30,13 @@ int main() {
 	// 			rule_c('z'), NULL),
 	// 	NULL);
 	//
-	// pr = parse("abcbcx", r1);
+	// pr = parse("x", r1);
 
-	ast_print(ast_get_root(pr.node));
+	ast *root = ast_get_root(pr.node);
+	ast_print(root);
+	ast_collapse_childs(root);
+	ast_print(root);
+
 	printf("%s\n", (pr.matched == MATCHED) ? "matched" : "not matched");
 
 	if (fork()) {

@@ -15,6 +15,8 @@ ast *ast_add_child(ast *parent, ast *child);
 
 ast *ast_add_sibling(ast *parent, ast *sibling);
 
+ast *ast_collapse_childs(ast *node);
+
 ast *ast_pop(ast *node);
 
 ast *ast_get_root(ast *node);
