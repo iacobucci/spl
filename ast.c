@@ -63,33 +63,33 @@ ast *ast_add_sibling(ast *node, ast *child) {
 	return child;
 }
 
-void ast_collapse_only_childs_recursive(ast *node) {
+ast *ast_collapse_only_childs_recursive(ast *node) {
 	if (node == NULL)
-		return;
+		return node;
 
-	// leaf nodes
 	if (node->child == NULL) {
-		printf("reached %s\n", node->content);
-
 		ast *parent_candidate = node->parent;
+		while (1) {
+			if (parent_candidate->n_childs > 1) {
+				// printf("---------\n");
+				// ast_print(parent_candidate);
+				// printf("---------\n");
+				return parent_candidate;
+			} else {
+				// ast_print(parent_candidate);
 
-		int level = 0;
+				parent_candidate = parent_candidate->parent;
 
-		while (parent_candidate->n_childs == 1 || parent_candidate != NULL) {
-
-			if (parent_candidate->parent == NULL)
-				break;
-			parent_candidate = parent_candidate->parent;
-
-			level++;
+				if (parent_candidate->parent == NULL)
+					break;
+			}
 		}
-
-		ast_add_child(parent_candidate, node);
-	} else {
-		ast_collapse_only_childs_recursive(node->child);
 	}
 
+	ast_collapse_only_childs_recursive(node->child);
 	ast_collapse_only_childs_recursive(node->next);
+
+	return node;
 }
 
 ast *ast_collapse_childs(ast *node) {

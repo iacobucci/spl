@@ -34,8 +34,8 @@ int main() {
 
 	ast *root = ast_get_root(pr.node);
 	ast_print(root);
-	ast_collapse_childs(root);
-	ast_print(root);
+	ast *sub = ast_collapse_childs(root);
+	ast_print(sub);
 
 	printf("%s\n", (pr.matched == MATCHED) ? "matched" : "not matched");
 
