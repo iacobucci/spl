@@ -71,13 +71,8 @@ ast *ast_collapse_only_childs_recursive(ast *node) {
 		ast *parent_candidate = node->parent;
 		while (1) {
 			if (parent_candidate->n_childs > 1) {
-				// printf("---------\n");
-				// ast_print(parent_candidate);
-				// printf("---------\n");
 				return parent_candidate;
 			} else {
-				// ast_print(parent_candidate);
-
 				parent_candidate = parent_candidate->parent;
 
 				if (parent_candidate->parent == NULL)
@@ -86,15 +81,13 @@ ast *ast_collapse_only_childs_recursive(ast *node) {
 		}
 	}
 
-	ast_collapse_only_childs_recursive(node->child);
 	ast_collapse_only_childs_recursive(node->next);
-
-	return node;
+	return ast_collapse_only_childs_recursive(node->child);
 }
 
 ast *ast_collapse_childs(ast *node) {
-	ast_collapse_only_childs_recursive(node);
-	return node;
+	ast *result = ast_collapse_only_childs_recursive(node);
+	return result;
 }
 
 ast *ast_pop(ast *node) {
