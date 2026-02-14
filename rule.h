@@ -1,4 +1,5 @@
 #pragma once
+#include "ast.h"
 
 enum rule_method { ZERO_OR_MORE, AND, OR, OPTIONAL };
 
@@ -12,7 +13,7 @@ typedef struct rule {
 	struct rule **childs;
 
 	char *name;
-	void (*callback)(char c);
+	void (*callback)(ast *self);
 
 	int already_printed;
 } rule;
@@ -25,7 +26,7 @@ rule *rule_range(char l1, char l2);
 
 rule *rule_add_name(rule *r, char *name);
 
-rule *rule_add_callback(rule *r, void (*callback)(char c));
+rule *rule_add_callback(rule *r, void (*callback)(ast *self));
 
 rule *rule_or(rule *r0, ...);
 
@@ -43,4 +44,4 @@ void rule_clean_already_printed(rule *r);
 
 void rule_free(rule **rp);
 
-void rule_callback(rule *r, char c);
+void rule_callback(rule *r, ast *self);

@@ -25,7 +25,7 @@ rule *rule_add_name(rule *r, char *name) {
 	return r;
 }
 
-rule *rule_add_callback(rule *r, void (*callback)(char c)) {
+rule *rule_add_callback(rule *r, void (*callback)(ast *self)) {
 	r->callback = callback;
 	return r;
 }
@@ -283,7 +283,7 @@ void rule_free(rule **rp) {
 	*rp = NULL;
 }
 
-void rule_callback(rule *r, char c) {
+void rule_callback(rule *r, ast *self) {
 	if (r->callback != NULL)
-		r->callback(c);
+		r->callback(self);
 }

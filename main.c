@@ -16,7 +16,7 @@ int main() {
 
 	// json_test();
 
-	pr = parse("[true]", value);
+	pr = parse("[\"ciao\"]", value);
 	// pr = parse("1", value);
 
 	// rule *r1 = rule_or(rule_zero_or_more(rule_c('x')), rule_c('y'), NULL);
@@ -35,21 +35,10 @@ int main() {
 	ast *root = ast_get_root(pr.node);
 	ast_print(root);
 
-	ast *sub = ast_collapse_childs(root);
-	ast_print(sub);
-
-	// TODO: make into a function
-	sub = ast_collapse_childs(sub->child->next->next->child->child);
-	ast_print(sub);
+	ast *sub = ast_collapse_only_childs(root);
+	// ast_print(sub);
 
 	printf("%s\n", (pr.matched == MATCHED) ? "matched" : "not matched");
-
-	if (fork()) {
-		execl("/usr/bin/date", NULL);
-	} else {
-		wait(NULL);
-		printf("\n");
-	}
 
 	return 0;
 }

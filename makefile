@@ -5,6 +5,7 @@ SRCS := $(wildcard *.c)
 main.out: $(SRCS)
 	make compile
 	./main.out
+	date
 
 compile:
 	gcc -g $(SRCS) -o main.out

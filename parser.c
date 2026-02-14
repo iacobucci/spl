@@ -41,8 +41,6 @@ parse_result parse_recursive(char *text, rule *r) {
 			result.node = ast_new("x");
 			result.node->content[0] = result.c;
 
-			rule_callback(r, result.c);
-
 			return result;
 		}
 	}
@@ -58,7 +56,6 @@ parse_result parse_recursive(char *text, rule *r) {
 				result.node = ast_new("or");
 				ast_add_child(result.node, child);
 
-				rule_callback(r, result.c);
 				return result;
 			}
 		}
@@ -86,8 +83,6 @@ parse_result parse_recursive(char *text, rule *r) {
 			remaining = result.remaining;
 		}
 
-		rule_callback(r, result.c);
-
 		result.remaining = remaining;
 		result.node = ast_and;
 
@@ -102,7 +97,6 @@ parse_result parse_recursive(char *text, rule *r) {
 
 		if (result.matched == MATCHED) {
 			ast_add_child(result.node, child);
-			rule_callback(r, result.c);
 		}
 
 		result.matched = MATCHED;
@@ -124,8 +118,6 @@ parse_result parse_recursive(char *text, rule *r) {
 				ast_add_child(zom_ast, result.node);
 			}
 		}
-
-		rule_callback(r, result.c);
 
 		result.matched = MATCHED;
 		result.node = zom_ast;

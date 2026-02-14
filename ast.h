@@ -7,6 +7,8 @@ typedef struct ast {
 	struct ast *prev;
 	int n_childs;
 	char *content;
+
+	void (*callback)(struct ast *self);
 } ast;
 
 ast *ast_new(char *content);
@@ -15,7 +17,7 @@ ast *ast_add_child(ast *parent, ast *child);
 
 ast *ast_add_sibling(ast *parent, ast *sibling);
 
-ast *ast_collapse_childs(ast *node);
+ast *ast_collapse_only_childs(ast *node);
 
 ast *ast_pop(ast *node);
 
