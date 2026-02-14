@@ -266,16 +266,27 @@ void rule_print(rule *r) {
 	rule_print_recursive(r, 0);
 }
 
+void rule_free_recursive(rule *r) {
+	for (int i = 0; i < r->n_childs; i++) {
+		rule_free_recursive(r->childs[i]);
+	}
+}
+
 void rule_free(rule **rp) {
-	rule *r = *rp;
-	if (rp == NULL || r == NULL)
+	if (rp == NULL)
 		return;
 
+	rule *r = *rp;
+
+	if (r == NULL)
+		return;
+
+	// TODO:
 	for (int i = 0; i < r->n_childs; i++) {
 		rule_free(&(r->childs[i]));
 	}
 
-	if (r->n_childs > 0)
+	if (r->n_childs > 0 && r->childs != NULL)
 		free(r->childs);
 
 	free(r);

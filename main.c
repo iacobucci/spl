@@ -36,9 +36,10 @@ int main() {
 	ast_print(root);
 
 	ast *sub = ast_collapse_only_childs(root);
-	// ast_print(sub);
+	ast_print(sub);
 
 	printf("%s\n", (pr.matched == MATCHED) ? "matched" : "not matched");
 
+	// json_free();
 	return 0;
 }
