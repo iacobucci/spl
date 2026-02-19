@@ -15,7 +15,7 @@ typedef struct rule {
 	char *name;
 	void (*callback)(ast *self);
 
-	int already_printed;
+	int visited;
 } rule;
 
 rule *rule_literal(char *literal);

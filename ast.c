@@ -76,6 +76,7 @@ void ast_collapse_only_childs_recursive(ast *node) {
 			ast *grandparent = parent->parent;
 			node->parent = grandparent;
 			printf("leaf: %s -> %s\n", parent->content, node->content);
+			ast_print(ast_get_root(node));
 		}
 	}
 }

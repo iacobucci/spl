@@ -138,6 +138,8 @@ parse_result parse(char *text, rule *r) {
 	if (strlen(result.remaining) != 0)
 		result.matched = NOT_MATCHED;
 
+	result.node = ast_get_root(result.node);
+
 	return result;
 }
 

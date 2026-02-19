@@ -122,8 +122,6 @@ rule *boolean;
 
 rule *null;
 
-// TODO: rollback
-
 void json_init() {
 	lcb = rule_c('{');
 	rcb = rule_c('}');

@@ -16,7 +16,7 @@ rule *rule_c(char c) {
 	result->id = RULE_ID++;
 	result->n_childs = 0;
 	result->parent = NULL;
-	result->already_printed = 0;
+	result->visited = 0;
 	return result;
 }
 
@@ -38,7 +38,7 @@ rule *rule_builder(int method, rule *r0, va_list args) {
 
 	result->c = '\0';
 
-	result->already_printed = 0;
+	result->visited = 0;
 
 	int capacity = 4;
 	result->childs = malloc(sizeof(rule *) * capacity);
@@ -89,7 +89,7 @@ rule *rule_range(char l1, char l2) {
 
 	result->c = '\0';
 
-	result->already_printed = 0;
+	result->visited = 0;
 
 	int i = 0;
 	for (char c = l1; c < l2 + 1; c++, i++) {
@@ -109,7 +109,7 @@ rule *rule_literal(char *literal) {
 
 	result->c = '\0';
 
-	result->already_printed = 0;
+	result->visited = 0;
 
 	for (int i = 0; i < result->n_childs; i++) {
 		result->childs[i] = rule_c(literal[i]);
@@ -132,7 +132,7 @@ rule *rule_optional(rule *r) {
 
 	result->c = '\0';
 
-	result->already_printed = 0;
+	result->visited = 0;
 
 	return result;
 }
@@ -150,7 +150,7 @@ rule *rule_zero_or_more(rule *r) {
 
 	result->c = '\0';
 
-	result->already_printed = 0;
+	result->visited = 0;
 
 	return result;
 }
@@ -213,7 +213,7 @@ void rule_print_recursive(rule *r, int print_comma) {
 
 	} else {
 		printf("\"method\": \"%s\", ", rule_method_atob(r->method));
-		if (r->already_printed != 1) {
+		if (r->visited != 1) {
 			printf("\"definition\": [\n");
 		} else {
 			printf("\"already_printed\": true }");
@@ -229,8 +229,8 @@ void rule_print_recursive(rule *r, int print_comma) {
 
 	RULE_DEPTH++;
 
-	if (r->already_printed != 1) {
-		r->already_printed = 1;
+	if (r->visited != 1) {
+		r->visited = 1;
 		for (int i = 0; i < r->n_childs; i++) {
 			rule_print_recursive(r->childs[i], (i + 1 < r->n_childs));
 		}
@@ -251,28 +251,25 @@ void rule_print_recursive(rule *r, int print_comma) {
 	printf("\n");
 }
 
-void rule_clean_already_printed(rule *r) {
-	if (r->already_printed != 0)
+void rule_clean_visited(rule *r) {
+	if (r == NULL)
+		return;
+
+	if (r->visited != 0)
 		for (int i = 0; i < r->n_childs; i++) {
-			r->childs[i]->already_printed = 0;
-			rule_clean_already_printed(r->childs[i]);
+			r->childs[i]->visited = 0;
+			rule_clean_visited(r->childs[i]);
 		}
 
-	r->already_printed = 0;
+	r->visited = 0;
 }
 
 void rule_print(rule *r) {
-	rule_clean_already_printed(r);
+	rule_clean_visited(r);
 	rule_print_recursive(r, 0);
 }
 
-void rule_free_recursive(rule *r) {
-	for (int i = 0; i < r->n_childs; i++) {
-		rule_free_recursive(r->childs[i]);
-	}
-}
-
-void rule_free(rule **rp) {
+void rule_free_recursive(rule **rp) {
 	if (rp == NULL)
 		return;
 
@@ -281,17 +278,27 @@ void rule_free(rule **rp) {
 	if (r == NULL)
 		return;
 
-	// TODO:
+	if (r->visited)
+		return;
+
+	r->visited = 1;
+
 	for (int i = 0; i < r->n_childs; i++) {
-		rule_free(&(r->childs[i]));
+		rule_free_recursive(&(r->childs[i]));
 	}
 
-	if (r->n_childs > 0 && r->childs != NULL)
+	if (r->n_childs > 0 && r->childs != NULL) {
 		free(r->childs);
+	}
 
 	free(r);
 
 	*rp = NULL;
+}
+
+void rule_free(rule **rp) {
+	rule_clean_visited(*rp);
+	rule_free_recursive(rp);
 }
 
 void rule_callback(rule *r, ast *self) {
