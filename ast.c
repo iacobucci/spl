@@ -63,27 +63,33 @@ ast *ast_add_sibling(ast *node, ast *child) {
 	return child;
 }
 
-void ast_collapse_only_childs_recursive(ast *node) {
+void ast_collapse_only_childs_recursive(ast *node, ast *new_ast) {
 	if (node == NULL)
 		return;
 
-	ast_collapse_only_childs_recursive(node->child);
-	ast_collapse_only_childs_recursive(node->next);
+	ast *child = node->child;
+	if (child != NULL) {
+		if (child->next == NULL && child->prev == NULL) {
+			if (child->child != NULL) {
+				printf("%s\n", child->content);
 
-	if (node->next == NULL && node->prev == NULL) {
-		ast *parent = node->parent;
-		if (parent != NULL) {
-			ast *grandparent = parent->parent;
-			node->parent = grandparent;
-			printf("leaf: %s -> %s\n", parent->content, node->content);
-			ast_print(ast_get_root(node));
+				ast *parent = node;
+				ast *grandson = child->child;
+
+				parent->child = grandson;
+				grandson->parent = parent;
+			}
 		}
 	}
+
+	ast_collapse_only_childs_recursive(node->next, new_ast);
+	ast_collapse_only_childs_recursive(node->child, new_ast);
 }
 
 ast *ast_collapse_only_childs(ast *node) {
-	ast_collapse_only_childs_recursive(node);
-	return node;
+	ast *result;
+	ast_collapse_only_childs_recursive(node, result);
+	return result;
 }
 
 ast *ast_pop(ast *node) {
@@ -104,6 +110,9 @@ ast *ast_pop(ast *node) {
 }
 
 ast *ast_get_root(ast *node) {
+	if (node == NULL)
+		return NULL;
+
 	while (node->parent != NULL)
 		node = node->parent;
 	return node;

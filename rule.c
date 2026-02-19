@@ -178,10 +178,12 @@ void rule_print_recursive(rule *r, int print_comma) {
 
 	tabs_print(RULE_DEPTH);
 
-	if (r->name == NULL)
-		printf("{ ");
-	else
-		printf("{ \"name\": \"%s\", ", r->name);
+	// if (r->name == NULL)
+	// 	printf("{ ");
+	// else
+	// 	printf("{ \"name\": \"%s\", ", r->name);
+
+	printf("{ ");
 
 	if (r->c != '\0') {
 		char c = r->c;

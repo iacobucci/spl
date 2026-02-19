@@ -23,6 +23,6 @@ int main() {
 	// printf("%s\n", (pr.matched == MATCHED) ? "matched" : "not matched");
 
 	json_free();
-	rule_print(value);
+	// rule_print(value);
 	return 0;
 }
