@@ -6,12 +6,14 @@ typedef struct ast {
 	struct ast *next;
 	struct ast *prev;
 	int n_childs;
+
+	char *name;
 	char *content;
 
 	void (*callback)(struct ast *self);
 } ast;
 
-ast *ast_new(char *content);
+ast *ast_new(char *content, char* name);
 
 ast *ast_add_child(ast *parent, ast *child);
 

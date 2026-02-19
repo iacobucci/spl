@@ -5,9 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-ast *ast_new(char *content) {
+ast *ast_new(char *content, char *name) {
 	ast *result = malloc(sizeof(ast));
 	result->content = strdup(content);
+	result->name = strdup(name);
 	result->n_childs = 0;
 	result->child = NULL;
 	result->parent = NULL;
@@ -63,21 +64,33 @@ ast *ast_add_sibling(ast *node, ast *child) {
 	return child;
 }
 
+void ast_free_individual_node(ast *n) {
+	if (n == NULL)
+		return;
+	free(n->content);
+	free(n);
+}
+
 void ast_collapse_only_childs_recursive(ast *node, ast *new_ast) {
 	if (node == NULL)
 		return;
 
-	ast *child = node->child;
-	if (child != NULL) {
-		if (child->next == NULL && child->prev == NULL) {
-			if (child->child != NULL) {
-				printf("%s\n", child->content);
+	if (node != NULL && node->next == NULL) {
+		if (node->child != NULL) {
 
-				ast *parent = node;
-				ast *grandson = child->child;
+			ast *parent = node->parent;
 
-				parent->child = grandson;
-				grandson->parent = parent;
+			if (parent != NULL) {
+
+				ast *grandson = node->child;
+
+				if (node->prev != NULL) {
+					// parent->child = grandson;
+					// grandson->parent = parent;
+				} else {
+					parent->child = grandson;
+					grandson->parent = parent;
+				}
 			}
 		}
 	}
@@ -89,7 +102,7 @@ void ast_collapse_only_childs_recursive(ast *node, ast *new_ast) {
 ast *ast_collapse_only_childs(ast *node) {
 	ast *result;
 	ast_collapse_only_childs_recursive(node, result);
-	return result;
+	return node;
 }
 
 ast *ast_pop(ast *node) {
@@ -128,8 +141,7 @@ void ast_free(ast **np) {
 	ast_free(&(node->next));
 	ast_free(&(node->child));
 
-	free(node->content);
-	free(node);
+	ast_free_individual_node(node);
 
 	*np = NULL;
 }
@@ -137,7 +149,10 @@ void ast_free(ast **np) {
 void ast_print_recursive(ast *node, int depth, int print_next) {
 	while (node != NULL) {
 		tabs_print(depth);
-		printf("%s\n", node->content);
+		printf("%s", node->content);
+		if (node->name)
+			printf(" %s", node->name);
+		printf("\n");
 
 		if (node->child != NULL)
 			ast_print_recursive(node->child, depth + 1, 1);

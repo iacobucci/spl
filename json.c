@@ -172,8 +172,10 @@ void json_init() {
 
 	optional_exponential_part = rule_optional(exponential_part);
 
-	number = rule_and(optional_minus, non_decimal_part, optional_decimal_part,
-					  optional_exponential_part, NULL);
+	number = rule_add_name(rule_and(optional_minus, non_decimal_part,
+									optional_decimal_part,
+									optional_exponential_part, NULL),
+						   "number");
 
 	dq = rule_c('"');
 
@@ -212,8 +214,9 @@ void json_init() {
 	zero_or_more_optional_escapes_or_characters =
 		rule_zero_or_more(rule_or(character, escape, NULL));
 
-	string =
-		rule_and(dq, zero_or_more_optional_escapes_or_characters, dq, NULL);
+	string = rule_add_name(
+		rule_and(dq, zero_or_more_optional_escapes_or_characters, dq, NULL),
+		"string");
 
 	double_dots = rule_c(':');
 

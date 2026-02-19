@@ -38,7 +38,7 @@ parse_result parse_recursive(char *text, rule *r) {
 			result.remaining = text + 1;
 			result.c = text[0];
 
-			result.node = ast_new("x");
+			result.node = ast_new("x", r->name);
 			result.node->content[0] = result.c;
 
 			return result;
@@ -53,7 +53,7 @@ parse_result parse_recursive(char *text, rule *r) {
 			if (result.matched == MATCHED) {
 
 				child = result.node;
-				result.node = ast_new("or");
+				result.node = ast_new("or", r->name);
 				ast_add_child(result.node, child);
 
 				return result;
@@ -69,7 +69,7 @@ parse_result parse_recursive(char *text, rule *r) {
 		char *remaining = text;
 		char *original_text = text;
 
-		ast *ast_and = ast_new("and");
+		ast *ast_and = ast_new("and", r->name);
 
 		for (int i = 0; i < r->n_childs; i++) {
 			result = parse_recursive(remaining, r->childs[i]);
@@ -93,7 +93,7 @@ parse_result parse_recursive(char *text, rule *r) {
 		result = parse_recursive(text, opt);
 
 		child = result.node;
-		result.node = ast_new("opt");
+		result.node = ast_new("opt", r->name);
 
 		if (result.matched == MATCHED) {
 			ast_add_child(result.node, child);
@@ -106,7 +106,7 @@ parse_result parse_recursive(char *text, rule *r) {
 	if (r->method == ZERO_OR_MORE) {
 		rule *zom = r->childs[0];
 
-		ast *zom_ast = ast_new("zom");
+		ast *zom_ast = ast_new("zom", r->name);
 
 		while (1) {
 			result = parse_recursive(text, zom);
