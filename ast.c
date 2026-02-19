@@ -8,7 +8,12 @@
 ast *ast_new(char *content, char *name) {
 	ast *result = malloc(sizeof(ast));
 	result->content = strdup(content);
-	result->name = strdup(name);
+
+	if (name != NULL)
+		result->name = strdup(name);
+	else
+		result->name = NULL;
+
 	result->n_childs = 0;
 	result->child = NULL;
 	result->parent = NULL;

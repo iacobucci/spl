@@ -39,6 +39,7 @@ parse_result parse_recursive(char *text, rule *r) {
 			result.c = text[0];
 
 			result.node = ast_new("x", r->name);
+			result.node->callback = r->callback;
 			result.node->content[0] = result.c;
 
 			return result;
@@ -54,6 +55,7 @@ parse_result parse_recursive(char *text, rule *r) {
 
 				child = result.node;
 				result.node = ast_new("or", r->name);
+				result.node->callback = r->callback;
 				ast_add_child(result.node, child);
 
 				return result;
@@ -70,6 +72,7 @@ parse_result parse_recursive(char *text, rule *r) {
 		char *original_text = text;
 
 		ast *ast_and = ast_new("and", r->name);
+		ast_and->callback = r->callback;
 
 		for (int i = 0; i < r->n_childs; i++) {
 			result = parse_recursive(remaining, r->childs[i]);
@@ -94,6 +97,7 @@ parse_result parse_recursive(char *text, rule *r) {
 
 		child = result.node;
 		result.node = ast_new("opt", r->name);
+		result.node->callback = r->callback;
 
 		if (result.matched == MATCHED) {
 			ast_add_child(result.node, child);
@@ -107,6 +111,7 @@ parse_result parse_recursive(char *text, rule *r) {
 		rule *zom = r->childs[0];
 
 		ast *zom_ast = ast_new("zom", r->name);
+		zom_ast->callback = r->callback;
 
 		while (1) {
 			result = parse_recursive(text, zom);
