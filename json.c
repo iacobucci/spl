@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "json.h"
 #include "parser.h"
@@ -233,7 +234,9 @@ void json_init() {
 	many_elements_array =
 		rule_and(lsb, ws, one_or_more_values, ws, value, ws, rsb, NULL);
 
-	array = rule_or(many_elements_array, one_element_array, empty_array, NULL);
+	array = rule_add_name(
+		rule_or(many_elements_array, one_element_array, empty_array, NULL),
+		"array");
 
 	member = rule_and(ws, string, ws, double_dots, ws, value, NULL);
 
@@ -258,6 +261,7 @@ void json_init() {
 
 	null = rule_literal("null");
 
+	value->name = strdup("value");
 	value->method = OR;
 	value->id = rule_new_id();
 	value->n_childs = 6;

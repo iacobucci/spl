@@ -79,30 +79,39 @@ ast *ast_add_sibling(ast *node, ast *child) {
 void ast_free_individual_node(ast *n) {
 	if (n == NULL)
 		return;
+
 	if (n->content != NULL)
 		free(n->content);
+
+	if (n->name != NULL)
+		free(n->name);
+
 	free(n);
 }
 
 void ast_simplify(ast *node, rule *r) {
-	if (node == NULL)
+	if (node == NULL || r == NULL)
 		return;
 
-	if (node->content != NULL)
-		printf("%s", node->content);
+	if (node->ruleid == r->id) {
+		printf("RULE TO SIMPLIFY\n");
+	}
 
 	ast_simplify(node->child, r);
 	ast_simplify(node->next, r);
 }
 
-// TODO: free
 void ast_wipe(ast *node, rule *r) {
 	if (node == NULL)
 		return;
 
 	if (node->child != NULL) {
-		if (node->child->ruleid == r->id)
+		if (node->child->ruleid == r->id) {
+			ast *old_child = node->child;
 			node->child = node->child->next;
+
+			ast_free_individual_node(old_child);
+		}
 	}
 
 	if (node->ruleid != r->id)
@@ -114,6 +123,8 @@ void ast_wipe(ast *node, rule *r) {
 		}
 		if (node->next != NULL)
 			node->next->prev = node->prev;
+
+		ast_free_individual_node(node);
 	}
 
 	if (node->next != NULL)
@@ -135,17 +146,13 @@ void ast_collapse_recursive(ast *node, rule *r, ast *to_add,
 		to_add_buffer[collapsing_to_add_index] = node->content[0];
 		collapsing_to_add_index++;
 
-		printf("%d %d\n", collapsing_to_add_index, to_add_buffer_length);
-
 		if (collapsing_to_add_index == to_add_buffer_length) {
 			to_add_buffer_length *= 2;
-			printf("reallocating with new size %d\n", to_add_buffer_length);
 			to_add->content = realloc(
 				to_add_buffer, sizeof(char) * (to_add_buffer_length + 1));
 		}
 
 		to_add_buffer[collapsing_to_add_index + 1] = '\0';
-		printf("%s\n", to_add_buffer);
 	}
 
 	if (node->ruleid == r->id) {
@@ -162,6 +169,11 @@ void ast_collapse_recursive(ast *node, rule *r, ast *to_add,
 
 	ast_collapse_recursive(node->child, r, to_add, to_add_buffer, collapsing);
 	ast_collapse_recursive(node->next, r, to_add, to_add_buffer, collapsing);
+
+	if (node->ruleid == r->id) {
+		if (node->child)
+			ast_free(&(node->child));
+	}
 }
 
 void ast_collapse(ast *node, rule *r) {
