@@ -25,6 +25,8 @@ typedef struct rule {
 
 #endif
 
+int rule_new_id();
+
 rule *rule_literal(char *literal);
 
 rule *rule_c(char c);

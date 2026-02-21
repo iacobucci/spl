@@ -27,10 +27,6 @@ ast *ast_add_child(ast *parent, ast *child);
 
 ast *ast_add_sibling(ast *parent, ast *sibling);
 
-ast *ast_collapse_only_childs(ast *node);
-
-ast *ast_simplify(ast *node, struct rule* rule);
-
 ast *ast_pop(ast *node);
 
 ast *ast_get_root(ast *node);
@@ -38,3 +34,10 @@ ast *ast_get_root(ast *node);
 void ast_free(ast **np);
 
 void ast_print(ast *node);
+
+void ast_simplify(ast *node, struct rule* rule);
+
+void ast_wipe(ast *node, struct rule* rule);
+
+void ast_collapse(ast *node, struct rule* rule);
+

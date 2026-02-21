@@ -11,7 +11,17 @@ void parse_tree(char *str, rule *r) {
 
 	ast_print(root);
 
-	ast_simplify(root, value);
+	ast_wipe(root, dq);
+	ast_wipe(root, comma);
+	ast_wipe(root, comma);
+	ast_wipe(root, lsb);
+	ast_wipe(root, rsb);
+
+	ast_collapse(root, string);
+
+	ast_print(root);
+
+	// ast_print(root);
 
 	// ast *sub = ast_collapse_only_childs(root);
 	// ast_print(sub);
@@ -23,9 +33,9 @@ int main() {
 	parse_result pr;
 	json_init();
 
-	parse_tree("[\"ciao\"]", value);
-	parse_tree("\"cane\"", value);
-	parse_tree("256", value);
+	// parse_tree("[\"ciao\"]", value);
+	parse_tree("[\"cane\", [\"cavallo catamaranico\"] ]", value);
+	// parse_tree("256", value);
 
 	json_free();
 	return 0;

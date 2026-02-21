@@ -1,7 +1,5 @@
-#include <stdio.h>
 #include <stdlib.h>
 
-#include "ast.h"
 #include "json.h"
 #include "parser.h"
 #include "rule.h"
@@ -261,6 +259,7 @@ void json_init() {
 	null = rule_literal("null");
 
 	value->method = OR;
+	value->id = rule_new_id();
 	value->n_childs = 6;
 	value->childs = malloc(sizeof(rule *) * value->n_childs);
 	value->childs[0] = number;

@@ -1,4 +1,5 @@
 #include "ast.h"
+#include "rule.h"
 #include "utils.h"
 
 #include <stdio.h>
@@ -83,54 +84,88 @@ void ast_free_individual_node(ast *n) {
 	free(n);
 }
 
-void ast_collapse_only_childs_recursive(ast *node, ast *new_ast) {
+void ast_simplify(ast *node, rule *r) {
 	if (node == NULL)
 		return;
-
-	if (node != NULL && node->next == NULL) {
-		if (node->child != NULL) {
-
-			ast *parent = node->parent;
-
-			if (parent != NULL) {
-
-				ast *grandson = node->child;
-
-				if (node->prev != NULL) {
-					// parent->child = grandson;
-					// grandson->parent = parent;
-				} else {
-					parent->child = grandson;
-					grandson->parent = parent;
-				}
-			}
-		}
-	}
-
-	ast_collapse_only_childs_recursive(node->next, new_ast);
-	ast_collapse_only_childs_recursive(node->child, new_ast);
-}
-
-// TODO:
-ast *ast_collapse_only_childs(ast *node) {
-	ast *result;
-	ast_collapse_only_childs_recursive(node, result);
-	return node;
-}
-
-ast *ast_simplify(ast *node, struct rule *r) {
-
-	if (node == NULL)
-		return NULL;
-
-	ast_simplify(node->child, r);
 
 	if (node->content != NULL)
 		printf("%s", node->content);
 
+	ast_simplify(node->child, r);
 	ast_simplify(node->next, r);
+}
 
-	return NULL;
+// TODO: free
+void ast_wipe(ast *node, rule *r) {
+	if (node == NULL)
+		return;
+
+	if (node->child != NULL) {
+		if (node->child->ruleid == r->id)
+			node->child = node->child->next;
+	}
+
+	if (node->ruleid != r->id)
+		ast_wipe(node->child, r);
+
+	if (node->ruleid == r->id) {
+		if (node->prev != NULL) {
+			node->prev->next = node->next;
+		}
+		if (node->next != NULL)
+			node->next->prev = node->prev;
+	}
+
+	if (node->next != NULL)
+		ast_wipe(node->next, r);
+}
+
+int collapsing_to_add_index;
+int to_add_buffer_length;
+
+#define TO_ADD_INITIAL_BUFFER_LENGTH 4
+
+void ast_collapse_recursive(ast *node, rule *r, ast *to_add,
+							char *to_add_buffer, int collapsing) {
+	if (node == NULL)
+		return;
+
+	if (collapsing && node->content) {
+
+		to_add_buffer[collapsing_to_add_index] = node->content[0];
+		collapsing_to_add_index++;
+
+		printf("%d %d\n", collapsing_to_add_index, to_add_buffer_length);
+
+		if (collapsing_to_add_index == to_add_buffer_length) {
+			to_add_buffer_length *= 2;
+			printf("reallocating with new size %d\n", to_add_buffer_length);
+			to_add->content = realloc(
+				to_add_buffer, sizeof(char) * (to_add_buffer_length + 1));
+		}
+
+		to_add_buffer[collapsing_to_add_index + 1] = '\0';
+		printf("%s\n", to_add_buffer);
+	}
+
+	if (node->ruleid == r->id) {
+		to_add_buffer =
+			malloc(sizeof(char) * (TO_ADD_INITIAL_BUFFER_LENGTH + 1));
+		to_add_buffer_length = TO_ADD_INITIAL_BUFFER_LENGTH;
+
+		node->content = to_add_buffer;
+		to_add = node;
+
+		collapsing_to_add_index = 0;
+		collapsing = 1;
+	}
+
+	ast_collapse_recursive(node->child, r, to_add, to_add_buffer, collapsing);
+	ast_collapse_recursive(node->next, r, to_add, to_add_buffer, collapsing);
+}
+
+void ast_collapse(ast *node, rule *r) {
+	ast_collapse_recursive(node, r, NULL, NULL, 0);
 }
 
 ast *ast_pop(ast *node) {
@@ -179,11 +214,11 @@ void ast_print_recursive(ast *node, int depth, int print_next) {
 		tabs_print(depth);
 
 		if (node->content != NULL)
-			printf("%s", node->content);
+			printf("%s ", node->content);
 		if (node->name)
-			printf(" %s", node->name);
+			printf("%s ", node->name);
 		if (node->ruleid)
-			printf(" %d", node->ruleid);
+			printf("%d", node->ruleid);
 		printf("\n");
 
 		if (node->child != NULL)

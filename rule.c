@@ -9,11 +9,13 @@
 int RULE_ID = 0;
 int RULE_DEPTH = 0;
 
+int rule_new_id() { return RULE_ID++; }
+
 rule *rule_c(char c) {
 	rule *result = malloc(sizeof(rule));
 	result->c = c;
 	result->childs = NULL;
-	result->id = RULE_ID++;
+	result->id = rule_new_id();
 	result->n_childs = 0;
 	result->parent = NULL;
 	result->visited = 0;
@@ -84,6 +86,8 @@ rule *rule_range(char l1, char l2) {
 	rule *result = malloc(sizeof(rule));
 
 	result->method = OR;
+	result->id = rule_new_id();
+
 	result->n_childs = l2 - l1 + 1;
 	result->childs = malloc(sizeof(rule *) * result->n_childs);
 
