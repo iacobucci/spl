@@ -7,7 +7,11 @@
 
 ast *ast_new(char *content, char *name) {
 	ast *result = malloc(sizeof(ast));
-	result->content = strdup(content);
+
+	if (content != NULL)
+		result->content = strdup(content);
+	else
+		result->content = NULL;
 
 	if (name != NULL)
 		result->name = strdup(name);
@@ -19,6 +23,8 @@ ast *ast_new(char *content, char *name) {
 	result->parent = NULL;
 	result->next = NULL;
 	result->prev = NULL;
+
+	result->ruleid = -1;
 	return result;
 }
 
@@ -72,7 +78,8 @@ ast *ast_add_sibling(ast *node, ast *child) {
 void ast_free_individual_node(ast *n) {
 	if (n == NULL)
 		return;
-	free(n->content);
+	if (n->content != NULL)
+		free(n->content);
 	free(n);
 }
 
@@ -104,10 +111,26 @@ void ast_collapse_only_childs_recursive(ast *node, ast *new_ast) {
 	ast_collapse_only_childs_recursive(node->child, new_ast);
 }
 
+// TODO:
 ast *ast_collapse_only_childs(ast *node) {
 	ast *result;
 	ast_collapse_only_childs_recursive(node, result);
 	return node;
+}
+
+ast *ast_simplify(ast *node, struct rule *r) {
+
+	if (node == NULL)
+		return NULL;
+
+	ast_simplify(node->child, r);
+
+	if (node->content != NULL)
+		printf("%s", node->content);
+
+	ast_simplify(node->next, r);
+
+	return NULL;
 }
 
 ast *ast_pop(ast *node) {
@@ -154,9 +177,13 @@ void ast_free(ast **np) {
 void ast_print_recursive(ast *node, int depth, int print_next) {
 	while (node != NULL) {
 		tabs_print(depth);
-		printf("%s", node->content);
+
+		if (node->content != NULL)
+			printf("%s", node->content);
 		if (node->name)
 			printf(" %s", node->name);
+		if (node->ruleid)
+			printf(" %d", node->ruleid);
 		printf("\n");
 
 		if (node->child != NULL)

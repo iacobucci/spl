@@ -3,6 +3,11 @@
 
 enum rule_method { ZERO_OR_MORE, AND, OR, OPTIONAL };
 
+#ifndef STRUCT_RULE
+#define STRUCT_RULE
+
+struct ast;
+
 typedef struct rule {
 	int method;
 	int id;
@@ -13,10 +18,12 @@ typedef struct rule {
 	struct rule **childs;
 
 	char *name;
-	void (*callback)(ast *self);
+	void (*callback)(struct ast *self);
 
 	int visited;
 } rule;
+
+#endif
 
 rule *rule_literal(char *literal);
 

@@ -11,6 +11,8 @@ void parse_tree(char *str, rule *r) {
 
 	ast_print(root);
 
+	ast_simplify(root, value);
+
 	// ast *sub = ast_collapse_only_childs(root);
 	// ast_print(sub);
 
@@ -25,6 +27,6 @@ int main() {
 	parse_tree("\"cane\"", value);
 	parse_tree("256", value);
 
-	// json_free();
+	json_free();
 	return 0;
 }
