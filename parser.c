@@ -67,7 +67,9 @@ parse_result parse_recursive(char *text, rule *r) {
 		result.remaining = original_text;
 		return result;
 	}
-	if (r->method == AND) {
+	// one or more here is an hack to then reference rules by their variable
+	// names.
+	if (r->method == AND || r->method == ONE_OR_MORE) {
 		int matched = MATCHED;
 		char *remaining = text;
 		char *original_text = text;

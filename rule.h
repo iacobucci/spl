@@ -1,7 +1,7 @@
 #pragma once
 #include "ast.h"
 
-enum rule_method { ZERO_OR_MORE, AND, OR, OPTIONAL };
+enum rule_method { ONE_OR_MORE, ZERO_OR_MORE, AND, OR, OPTIONAL };
 
 #ifndef STRUCT_RULE
 #define STRUCT_RULE

@@ -160,7 +160,9 @@ rule *rule_zero_or_more(rule *r) {
 }
 
 rule *rule_one_or_more(rule *r) {
-	return rule_and(r, rule_zero_or_more(r), NULL);
+	rule *result = rule_and(r, rule_zero_or_more(r), NULL);
+	result->method = ONE_OR_MORE;
+	return result;
 }
 
 char *rule_method_atob(int method) {
@@ -170,6 +172,8 @@ char *rule_method_atob(int method) {
 	case OR:
 		return "OR";
 	case AND:
+		return "AND";
+	case ONE_OR_MORE:
 		return "AND";
 	default:
 		return "OPTIONAL";
