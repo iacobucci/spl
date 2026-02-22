@@ -89,7 +89,6 @@ void ast_free_individual_node(ast *n) {
 	free(n);
 }
 
-// TODO: free
 void ast_simplify_recursive_child(ast *node, int rid) {
 	if (node == NULL)
 		return;
@@ -126,6 +125,7 @@ void ast_simplify_recursive_child(ast *node, int rid) {
 	ast_simplify_recursive_child(node->next, rid);
 }
 
+// TODO: free
 void ast_simplify_recursive(ast *node, int rid) {
 	if (node == NULL)
 		return;
@@ -133,34 +133,43 @@ void ast_simplify_recursive(ast *node, int rid) {
 	ast *parent = node->parent;
 
 	if (node->ruleid == rid) {
-		ast *grandchild = node->child;
-		parent->child = grandchild;
+		if (parent != NULL) {
+			ast *grandchild = node->child;
+			parent->child = grandchild;
 
-		ast *grandsibling = grandchild;
+			ast *grandsibling = grandchild;
 
-		while (grandsibling != NULL) {
-			grandsibling->parent = node;
-			if (grandsibling->next == NULL)
-				break;
-			grandsibling = grandsibling->next;
-		}
+			while (grandsibling != NULL) {
+				grandsibling->parent = parent;
+				if (grandsibling->next == NULL)
+					break;
+				grandsibling = grandsibling->next;
+			}
 
-		if (parent) {
-			grandsibling->next = parent->next;
-			if (node->next)
-				node->next->prev = grandsibling;
+			if (grandsibling != NULL) {
+				grandsibling->next = node->next;
+				if (node->next)
+					node->next->prev = grandsibling;
 
-			ast *sibling = node->next;
+				ast *sibling = node->next;
 
-			while (sibling != NULL) {
-				sibling->parent = parent;
-				sibling = sibling->next;
+				while (sibling != NULL) {
+					sibling->parent = parent;
+					sibling = sibling->next;
+				}
 			}
 		}
 	}
 
 	ast_simplify_recursive(node->child, rid);
 	ast_simplify_recursive(node->next, rid);
+
+	if (node->ruleid == rid) {
+		// node->next = NULL;
+		// node->prev = NULL;
+		// node->parent = NULL;
+		// ast_free(&node);
+	}
 }
 
 void ast_simplify(ast *node, rule *r) {
@@ -168,7 +177,9 @@ void ast_simplify(ast *node, rule *r) {
 
 	if (r->method == ONE_OR_MORE) {
 		printf("to find: %d\n", r->childs[1]->id);
-		ast_simplify_recursive(node, r->childs[1]->id);
+		// TODO: simplify
+		// ast_simplify_recursive(node, r->childs[1]->id);
+		// ast_wipe(node, r->childs[1]);
 	}
 }
 

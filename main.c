@@ -26,7 +26,9 @@ void parse_tree(char *str, rule *r) {
 
 	ast_print(root);
 
-	printf("%i %i", value_and_comma->method, ONE_OR_MORE);
+	printf("%i %i\n", value_and_comma->method, ONE_OR_MORE);
+
+	printf("one_or_more_values %d\n", one_or_more_values->id);
 
 	printf("%s\n", (pr.matched == MATCHED) ? "matched" : "not matched");
 }
@@ -36,7 +38,7 @@ int main() {
 	json_init();
 
 	// parse_tree("[\"ciao\"]", value);
-	parse_tree("[\"cane\", [\"cavallo catamarano\"] ]", value);
+	parse_tree("[\"cane\", \"casa\", [\"cavallo catamarano\"] ]", value);
 	// parse_tree("256", value);
 
 	json_free();
