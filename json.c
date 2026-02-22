@@ -251,15 +251,17 @@ void json_init() {
 	many_elements_object =
 		rule_and(lcb, ws, one_or_more_members, ws, member, ws, rcb, NULL);
 
-	object =
-		rule_or(empty_object, one_member_object, many_elements_object, NULL);
+	object = rule_add_name(
+		rule_or(empty_object, one_member_object, many_elements_object, NULL),
+		"object");
 
 	boolean_true = rule_literal("true");
 	boolean_false = rule_literal("false");
 
-	boolean = rule_or(boolean_false, boolean_true, NULL);
+	boolean =
+		rule_add_name(rule_or(boolean_false, boolean_true, NULL), "boolean");
 
-	null = rule_literal("null");
+	null = rule_add_name(rule_literal("null"), "null");
 
 	value->name = strdup("value");
 	value->method = OR;

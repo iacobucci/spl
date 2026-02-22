@@ -107,6 +107,7 @@ rule *rule_range(char l1, char l2) {
 rule *rule_literal(char *literal) {
 	rule *result = malloc(sizeof(rule));
 
+	result->id = rule_new_id();
 	result->method = AND;
 	result->n_childs = strlen(literal);
 	result->childs = malloc(sizeof(rule *) * result->n_childs);

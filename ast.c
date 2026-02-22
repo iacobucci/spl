@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define TO_ADD_INITIAL_BUFFER_LENGTH 4
+
 ast *ast_new(char *content, char *name) {
 	ast *result = malloc(sizeof(ast));
 
@@ -93,30 +95,31 @@ void ast_simplify_recursive(ast *node, int rid) {
 	if (node == NULL)
 		return;
 
-	// Prima ricorri su figli e fratelli
+	if (node->ruleid == rid) {
+		printf("trovato nodo rid=%d, parent=%p, child=%p\n", rid,
+			   (void *)node->parent, (void *)node->child);
+	}
+
 	ast_simplify_recursive(node->child, rid);
 	ast_simplify_recursive(node->next, rid);
 
 	if (node->ruleid != rid)
 		return;
 	if (node->child == NULL)
-		return; // nodo vuoto, nulla da fare (o gestisci diversamente)
+		return;
 
 	ast *parent = node->parent;
 	ast *prev = node->prev;
 	ast *next = node->next;
 
-	// Trova l'ultimo figlio di node
 	ast *first_child = node->child;
 	ast *last_child = first_child;
 	while (last_child->next != NULL)
 		last_child = last_child->next;
 
-	// Aggiorna parent di tutti i figli
 	for (ast *c = first_child; c != NULL; c = c->next)
 		c->parent = parent;
 
-	// Collega il lato sinistro
 	if (prev == NULL) {
 		if (parent != NULL)
 			parent->child = first_child;
@@ -126,7 +129,6 @@ void ast_simplify_recursive(ast *node, int rid) {
 		first_child->prev = prev;
 	}
 
-	// Collega il lato destro
 	last_child->next = next;
 	if (next != NULL)
 		next->prev = last_child;
@@ -143,12 +145,60 @@ void ast_simplify_recursive(ast *node, int rid) {
 	}
 }
 
+// static void ast_simplify_recursive(ast *node, int rid) {
+// 	if (node == NULL)
+// 		return;
+//
+// 	if (node->ruleid == rid && node->child != NULL && node->parent != NULL) {
+// 		ast *parent = node->parent;
+// 		ast *prev = node->prev;
+// 		ast *next = node->next;
+// 		ast *first_child = node->child;
+// 		ast *last_child = first_child;
+//
+// 		while (last_child->next != NULL)
+// 			last_child = last_child->next;
+//
+// 		for (ast *c = first_child; c != NULL; c = c->next)
+// 			c->parent = parent;
+//
+// 		if (prev == NULL) {
+// 			parent->child = first_child;
+// 			first_child->prev = NULL;
+// 		} else {
+// 			prev->next = first_child;
+// 			first_child->prev = prev;
+// 		}
+//
+// 		last_child->next = next;
+// 		if (next != NULL)
+// 			next->prev = last_child;
+//
+// 		node->child = NULL;
+// 		node->next = NULL;
+//
+// 		ast_simplify_recursive(first_child, rid);
+// 		ast_simplify_recursive(next, rid);
+//
+// 		if (node->content)
+// 			free(node->content);
+// 		if (node->name)
+// 			free(node->name);
+// 		free(node);
+//
+// 		return;
+// 	}
+//
+// 	ast_simplify_recursive(node->child, rid);
+// 	ast_simplify_recursive(node->next, rid);
+// }
+
 void ast_simplify(ast *node, rule *r) {
+	ast_simplify_recursive(node, r->id);
+
 	if (r->method == ONE_OR_MORE) {
 		ast_simplify_recursive(node, r->childs[1]->id);
 	}
-
-	ast_simplify_recursive(node, r->id);
 }
 
 void ast_wipe(ast *node, rule *r) {
@@ -157,105 +207,85 @@ void ast_wipe(ast *node, rule *r) {
 
 	ast *next = node->next;
 
-	if (node->child != NULL && node->child->ruleid == r->id) {
-		ast *old_child = node->child;
-		node->child = old_child->next;
-
-		if (node->child != NULL)
-			node->child->prev = NULL;
-
-		ast_free_individual_node(old_child);
-	}
-
-	if (node->ruleid != r->id)
-		ast_wipe(node->child, r);
-
 	if (node->ruleid == r->id) {
-
 		if (node->prev != NULL)
 			node->prev->next = node->next;
+		else if (node->parent != NULL)
+			node->parent->child = node->next;
 
 		if (node->next != NULL)
 			node->next->prev = node->prev;
 
 		ast_free_individual_node(node);
+	} else {
+		ast_wipe(node->child, r);
 	}
 
 	ast_wipe(next, r);
 }
 
-int collapsing_to_add_index;
-int collapsing_to_add_buffer_length;
+typedef struct {
+	ast *target;
+	char *buffer;
+	int index;
+	int capacity;
+} collapse_state;
 
-#define TO_ADD_INITIAL_BUFFER_LENGTH 4
+static void state_append(collapse_state *state, char c) {
+	if (state->index == state->capacity) {
+		state->capacity *= 2;
+		state->buffer = realloc(state->buffer, state->capacity + 1);
+		if (state->buffer == NULL)
+			exit(-1);
+	}
+	state->buffer[state->index++] = c;
+	state->buffer[state->index] = '\0';
+}
 
-void ast_collapse_recursive(ast *node, rule *r, ast *to_add, int collapsing) {
+static void ast_collapse_recursive(ast *node, rule *r, collapse_state *state) {
 	if (node == NULL)
-		return; // base case
+		return;
 
-	// iteratively add characters to the to_add->content
-	if (collapsing && node->content) {
-		to_add->content[collapsing_to_add_index] = node->content[0];
-		// always add a terminator. May be inefficient.
-		to_add->content[collapsing_to_add_index + 1] = '\0';
+	int created_state = 0;
+	collapse_state local_state = {0};
 
-		collapsing_to_add_index++;
+	if (node->ruleid == r->id) {
+		local_state.target = node;
+		local_state.capacity = TO_ADD_INITIAL_BUFFER_LENGTH;
+		local_state.buffer = malloc(local_state.capacity + 1);
+		if (local_state.buffer == NULL)
+			exit(-1);
+		local_state.buffer[0] = '\0';
+		local_state.index = 0;
+		state = &local_state;
+		created_state = 1;
+	}
 
-		// expand the size of the string
-		if (collapsing_to_add_index == collapsing_to_add_buffer_length) {
-			collapsing_to_add_buffer_length *= 2;
-			to_add->content =
-				realloc(to_add->content,
-						sizeof(char) * (collapsing_to_add_buffer_length + 1));
+	if (state != NULL && state->target != node && node->content) {
+		state_append(state, node->content[0]);
+	}
 
-			if (to_add->content == NULL) {
-				exit(-1);
-			}
+	ast_collapse_recursive(node->child, r, state);
+
+	ast_collapse_recursive(node->next, r, created_state ? NULL : state);
+
+	if (created_state) {
+		if (local_state.index > 0) {
+			if (node->content)
+				free(node->content);
+			node->content = local_state.buffer;
+		} else {
+			free(local_state.buffer);
+			node->content = NULL;
 		}
-	}
 
-	if (node->ruleid == r->id) {
-		to_add = node;
-
-		to_add->content =
-			malloc(sizeof(char) * (TO_ADD_INITIAL_BUFFER_LENGTH + 1));
-
-		collapsing_to_add_buffer_length = TO_ADD_INITIAL_BUFFER_LENGTH;
-
-		collapsing_to_add_index = 0;
-		collapsing = 1;
-	}
-
-	ast_collapse_recursive(node->child, r, to_add, collapsing);
-
-	// if no character was appended to string, we can free it
-	if (collapsing && collapsing_to_add_index == 0) {
-		free(to_add->content);
-		to_add->content = NULL;
-	}
-
-	// this will tell us if we popped out of the node that was being
-	// collapsed before
-	if (node == to_add)
-		collapsing = 0;
-
-	ast_collapse_recursive(node->next, r, to_add, collapsing);
-
-	// again, if no character was appended to string, we can free it
-	if (collapsing && collapsing_to_add_index == 0) {
-		free(to_add->content);
-		to_add->content = NULL;
-	}
-
-	if (node->ruleid == r->id) {
 		if (node->child)
 			ast_free(&(node->child));
+		node->child = NULL;
 	}
 }
 
-void ast_collapse(ast *node, rule *r) {
-	ast_collapse_recursive(node, r, NULL, 0);
-}
+void ast_collapse(ast *node, rule *r) { ast_collapse_recursive(node, r, NULL); }
 
 ast *ast_pop(ast *node) {
 	ast *temp = node;
