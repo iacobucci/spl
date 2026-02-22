@@ -11,7 +11,6 @@ compile:
 	gcc -g -O2 $(SRCS) -o main.out
 
 dev:
-	make main.out
 	ls *.c *.h | entr make main.out
 
 sanitize:

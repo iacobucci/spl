@@ -145,54 +145,6 @@ void ast_simplify_recursive(ast *node, int rid) {
 	}
 }
 
-// static void ast_simplify_recursive(ast *node, int rid) {
-// 	if (node == NULL)
-// 		return;
-//
-// 	if (node->ruleid == rid && node->child != NULL && node->parent != NULL) {
-// 		ast *parent = node->parent;
-// 		ast *prev = node->prev;
-// 		ast *next = node->next;
-// 		ast *first_child = node->child;
-// 		ast *last_child = first_child;
-//
-// 		while (last_child->next != NULL)
-// 			last_child = last_child->next;
-//
-// 		for (ast *c = first_child; c != NULL; c = c->next)
-// 			c->parent = parent;
-//
-// 		if (prev == NULL) {
-// 			parent->child = first_child;
-// 			first_child->prev = NULL;
-// 		} else {
-// 			prev->next = first_child;
-// 			first_child->prev = prev;
-// 		}
-//
-// 		last_child->next = next;
-// 		if (next != NULL)
-// 			next->prev = last_child;
-//
-// 		node->child = NULL;
-// 		node->next = NULL;
-//
-// 		ast_simplify_recursive(first_child, rid);
-// 		ast_simplify_recursive(next, rid);
-//
-// 		if (node->content)
-// 			free(node->content);
-// 		if (node->name)
-// 			free(node->name);
-// 		free(node);
-//
-// 		return;
-// 	}
-//
-// 	ast_simplify_recursive(node->child, rid);
-// 	ast_simplify_recursive(node->next, rid);
-// }
-
 void ast_simplify(ast *node, rule *r) {
 	ast_simplify_recursive(node, r->id);
 
