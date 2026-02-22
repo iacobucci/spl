@@ -89,113 +89,100 @@ void ast_free_individual_node(ast *n) {
 	free(n);
 }
 
-// TODO: free
 void ast_simplify_recursive(ast *node, int rid) {
 	if (node == NULL)
 		return;
 
+	// Prima ricorri su figli e fratelli
 	ast_simplify_recursive(node->child, rid);
 	ast_simplify_recursive(node->next, rid);
 
+	if (node->ruleid != rid)
+		return;
+	if (node->child == NULL)
+		return; // nodo vuoto, nulla da fare (o gestisci diversamente)
+
 	ast *parent = node->parent;
+	ast *prev = node->prev;
+	ast *next = node->next;
 
-	if (node->ruleid == rid) {
-		printf("\n\nrid = %d, prev = %p\n", rid, node->prev);
+	// Trova l'ultimo figlio di node
+	ast *first_child = node->child;
+	ast *last_child = first_child;
+	while (last_child->next != NULL)
+		last_child = last_child->next;
 
-		if (parent != NULL) {
-			ast *grandchild = node->child;
+	// Aggiorna parent di tutti i figli
+	for (ast *c = first_child; c != NULL; c = c->next)
+		c->parent = parent;
 
-			if (node->prev == NULL) {
-				printf("node->prev = NULL for %d\n", rid);
-
-				parent->child = grandchild;
-			} else {
-				node->prev->next = grandchild;
-				grandchild->prev = node->prev;
-			}
-
-			// ast *grandsibling = grandchild;
-			//
-			// while (grandsibling != NULL) {
-			// 	grandsibling->parent = parent;
-			// 	if (grandsibling->next == NULL)
-			// 		break;
-			// 	grandsibling = grandsibling->next;
-			// }
-			//
-			// if (grandsibling != NULL) {
-			// 	grandsibling->next = node->next;
-			//
-			// 	if (node->next)
-			// 		node->next->prev = grandsibling;
-			//
-			// 	if (node->prev)
-			// 		node->prev->next = grandsibling;
-			//
-			// 	ast *sibling = node->next;
-			//
-			// 	while (sibling != NULL) {
-			// 		sibling->parent = parent;
-			// 		sibling = sibling->next;
-			// 	}
-			// }
-		}
+	// Collega il lato sinistro
+	if (prev == NULL) {
+		if (parent != NULL)
+			parent->child = first_child;
+		first_child->prev = NULL;
+	} else {
+		prev->next = first_child;
+		first_child->prev = prev;
 	}
 
-	if (node->ruleid == rid) {
-		// node->next = NULL;
-		// node->prev = NULL;
-		// node->parent = NULL;
-		// ast_free(&node);
+	// Collega il lato destro
+	last_child->next = next;
+	if (next != NULL)
+		next->prev = last_child;
+
+	if (node->ruleid == rid && node->child != NULL && node->parent != NULL) {
+		node->child = NULL;
+		node->next = NULL;
+		node->prev = NULL;
+		if (node->content)
+			free(node->content);
+		if (node->name)
+			free(node->name);
+		free(node);
 	}
 }
 
 void ast_simplify(ast *node, rule *r) {
-	ast_simplify_recursive(node, r->id);
-
-	ast_print(node);
-
-	if (r->method == ONE_OR_MORE)
+	if (r->method == ONE_OR_MORE) {
 		ast_simplify_recursive(node, r->childs[1]->id);
+	}
+
+	ast_simplify_recursive(node, r->id);
 }
 
 void ast_wipe(ast *node, rule *r) {
 	if (node == NULL)
 		return;
 
-	if (node->child != NULL) {
-		if (node->child->ruleid == r->id) {
-			ast *old_child = node->child;
-			node->child = node->child->next;
+	ast *next = node->next;
 
-			ast_free_individual_node(old_child);
-		}
+	if (node->child != NULL && node->child->ruleid == r->id) {
+		ast *old_child = node->child;
+		node->child = old_child->next;
+
+		if (node->child != NULL)
+			node->child->prev = NULL;
+
+		ast_free_individual_node(old_child);
 	}
 
 	if (node->ruleid != r->id)
 		ast_wipe(node->child, r);
 
 	if (node->ruleid == r->id) {
-		if (node->prev != NULL) {
+
+		if (node->prev != NULL)
 			node->prev->next = node->next;
-		}
+
 		if (node->next != NULL)
 			node->next->prev = node->prev;
 
 		ast_free_individual_node(node);
 	}
 
-	if (node->next != NULL)
-		ast_wipe(node->next, r);
+	ast_wipe(next, r);
 }
-
-// int ast_is_subnode(ast *root, ast *other) {
-// 	if (root == NULL || other == NULL)
-// 		return 0;
-//
-// 	ast_is_subnode(root, other->child);
-// 	ast_is_subnode(root, other->next);
-// }
 
 int collapsing_to_add_index;
 int collapsing_to_add_buffer_length;
@@ -220,6 +207,10 @@ void ast_collapse_recursive(ast *node, rule *r, ast *to_add, int collapsing) {
 			to_add->content =
 				realloc(to_add->content,
 						sizeof(char) * (collapsing_to_add_buffer_length + 1));
+
+			if (to_add->content == NULL) {
+				exit(-1);
+			}
 		}
 	}
 
@@ -237,15 +228,24 @@ void ast_collapse_recursive(ast *node, rule *r, ast *to_add, int collapsing) {
 
 	ast_collapse_recursive(node->child, r, to_add, collapsing);
 
+	// if no character was appended to string, we can free it
 	if (collapsing && collapsing_to_add_index == 0) {
 		free(to_add->content);
 		to_add->content = NULL;
 	}
 
+	// this will tell us if we popped out of the node that was being
+	// collapsed before
 	if (node == to_add)
 		collapsing = 0;
 
 	ast_collapse_recursive(node->next, r, to_add, collapsing);
+
+	// again, if no character was appended to string, we can free it
+	if (collapsing && collapsing_to_add_index == 0) {
+		free(to_add->content);
+		to_add->content = NULL;
+	}
 
 	if (node->ruleid == r->id) {
 		if (node->child)
@@ -302,12 +302,14 @@ void ast_print_recursive(ast *node, int depth, int print_next) {
 	while (node != NULL) {
 		tabs_print(depth);
 
-		if (node->content != NULL)
-			printf("%s ", node->content);
 		if (node->name)
-			printf("%s ", node->name);
-		if (node->ruleid)
-			printf("%d", node->ruleid);
+			printf("%s: ", node->name);
+		if (node->content != NULL)
+			printf("\"%s\"", node->content);
+		else if (node->ruleid)
+			printf("(%d)", node->ruleid);
+		// if (node->prev)
+		// 	printf(" [%d]", node->prev->ruleid);
 		printf("\n");
 
 		if (node->child != NULL)
