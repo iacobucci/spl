@@ -52,10 +52,6 @@ int main() {
 	parse_result pr;
 	json_init();
 
-	// parse_tree("[\"ciao\"]");
-	// parse_tree("[\"cane\", \"casa\", [\"cavallo catamarano\"], [], [] ]");
-	// parse_tree("256");
-	// parse_tree("10.625");
 	parse_tree("{\"cane\": [1, -1, 0.34234, {\"empty\": [[]]}, -723.23, 2E10, "
 			   "-0.12e226, null], \"CAPRA\": {\"cavallo\"  :false} }");
 

@@ -292,20 +292,39 @@ void ast_print_recursive(ast *node, int depth, int print_next) {
 	while (node != NULL) {
 		tabs_print(depth);
 
-		if (node->name)
-			printf("%s: ", node->name);
+		if (node->name == NULL)
+			printf("{");
+		else
+			printf("{\"name\": \"%s\"", node->name);
+
+		if (node->name && node->content)
+			printf(",");
+
+		// if (node->name)
+		// 	printf("%s: ", node->name);
 		if (node->content != NULL)
-			printf("\"%s\"", node->content);
+			printf("\"content\": \"%s\"", node->content);
 
 		// else if (node->ruleid)
 		// 	printf("(%d)", node->ruleid);
 		// if (node->prev)
 		// 	printf(" [%d]", node->prev->ruleid);
 
-		printf("\n");
-
-		if (node->child != NULL)
+		if (node->child != NULL) {
+			printf(", \"children\": [\n");
 			ast_print_recursive(node->child, depth + 1, 1);
+
+			tabs_print(depth);
+			printf("]}");
+		} else {
+			printf("}");
+		}
+
+		if (node->next) {
+			printf(",");
+		}
+
+		printf("\n");
 
 		if (print_next == 0)
 			return;

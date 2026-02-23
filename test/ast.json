@@ -1,0 +1,101 @@
+{
+	"name": "value",
+	"children": [
+		{
+			"name": "object",
+			"children": [
+				{
+					"name": "member",
+					"children": [
+						{
+							"name": "string",
+							"content": "cane"
+						},
+						{
+							"name": "array",
+							"children": [
+								{
+									"name": "number",
+									"content": "1"
+								},
+								{
+									"name": "number",
+									"content": "-1"
+								},
+								{
+									"name": "number",
+									"content": "0.34234"
+								},
+								{
+									"name": "object",
+									"children": [
+										{
+											"name": "member",
+											"children": [
+												{
+													"name": "string",
+													"content": "empty"
+												},
+												{
+													"name": "array",
+													"children": [
+														{
+															"name": "array"
+														}
+													]
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "number",
+									"content": "-723.23"
+								},
+								{
+									"name": "number",
+									"content": "2E10"
+								},
+								{
+									"name": "number",
+									"content": "-0.12e226"
+								},
+								{
+									"name": "null",
+									"content": "null"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "member",
+					"children": [
+						{
+							"name": "string",
+							"content": "CAPRA"
+						},
+						{
+							"name": "object",
+							"children": [
+								{
+									"name": "member",
+									"children": [
+										{
+											"name": "string",
+											"content": "cavallo"
+										},
+										{
+											"name": "boolean",
+											"content": "false"
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	]
+}
