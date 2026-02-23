@@ -238,7 +238,8 @@ void json_init() {
 		rule_or(many_elements_array, one_element_array, empty_array, NULL),
 		"array");
 
-	member = rule_and(ws, string, ws, double_dots, ws, value, NULL);
+	member = rule_add_name(
+		rule_and(ws, string, ws, double_dots, ws, value, NULL), "member");
 
 	member_and_comma = rule_and(member, ws, comma, ws, NULL);
 

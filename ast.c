@@ -105,8 +105,21 @@ void ast_simplify_recursive(ast *node, int rid) {
 
 	if (node->ruleid != rid)
 		return;
-	if (node->child == NULL)
+	if (node->child == NULL) {
+		if (node->next)
+			node->next->prev = node->prev;
+
+		if (node->prev)
+			node->prev->next = node->next;
+
+		if (node->content)
+			free(node->content);
+		if (node->name)
+			free(node->name);
+
+		free(node);
 		return;
+	}
 
 	ast *parent = node->parent;
 	ast *prev = node->prev;
