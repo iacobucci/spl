@@ -22,6 +22,7 @@ void parse_tree(char *str) {
 	ast_wipe(root, double_dots);
 
 	ast_wipe(root, empty_array);
+	ast_wipe(root, empty_object);
 
 	ast_collapse(root, null);
 	ast_collapse(root, boolean);
@@ -55,7 +56,7 @@ int main() {
 	// parse_tree("[\"cane\", \"casa\", [\"cavallo catamarano\"], [], [] ]");
 	// parse_tree("256");
 	// parse_tree("10.625");
-	parse_tree("{\"cane\": [1, -1, 0.34234, -723.23, 2E10, "
+	parse_tree("{\"cane\": [1, -1, 0.34234, {}, -723.23, 2E10, "
 			   "-0.12e226, null], \"CAPRA\": {\"cavallo\"  :false} }");
 
 	json_free();

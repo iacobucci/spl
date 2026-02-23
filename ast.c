@@ -95,11 +95,6 @@ void ast_simplify_recursive(ast *node, int rid) {
 	if (node == NULL)
 		return;
 
-	if (node->ruleid == rid) {
-		printf("trovato nodo rid=%d, parent=%p, child=%p\n", rid,
-			   (void *)node->parent, (void *)node->child);
-	}
-
 	ast_simplify_recursive(node->child, rid);
 	ast_simplify_recursive(node->next, rid);
 
@@ -301,10 +296,12 @@ void ast_print_recursive(ast *node, int depth, int print_next) {
 			printf("%s: ", node->name);
 		if (node->content != NULL)
 			printf("\"%s\"", node->content);
-		else if (node->ruleid)
-			printf("(%d)", node->ruleid);
+
+		// else if (node->ruleid)
+		// 	printf("(%d)", node->ruleid);
 		// if (node->prev)
 		// 	printf(" [%d]", node->prev->ruleid);
+
 		printf("\n");
 
 		if (node->child != NULL)
