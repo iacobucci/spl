@@ -45,7 +45,11 @@ void parse_tree(char *str) {
 
 	char *ats = ast_to_string(root);
 
-	// printf("%p\n", ats);
+	printf("%p\n", ats);
+
+	printf("---\n");
+	printf("%s\n", ats);
+	printf("---\n");
 
 	printf("%s\n", (pr.matched == MATCHED) ? "matched" : "not matched");
 

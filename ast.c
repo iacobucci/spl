@@ -336,9 +336,9 @@ void ast_print(ast *node) { ast_print_recursive(node, 0, 1); }
 
 void ast_to_string_recursive(ast *node, int depth, int print_next, char **buf) {
 	while (node != NULL) {
-		char *tabs = tabs_to_string(depth);
-		*buf = string_concat(*buf, tabs);
-		free(tabs);
+		// char *tabs = tabs_to_string(depth);
+		// *buf = string_concat(*buf, tabs);
+		// free(tabs);
 
 		if (node->name == NULL)
 			*buf = string_concat(*buf, "{");
@@ -350,8 +350,8 @@ void ast_to_string_recursive(ast *node, int depth, int print_next, char **buf) {
 			free(local);
 		}
 
-		if (node->name && node->content)
-			*buf = string_concat(*buf, ",");
+		// if (node->name && node->content)
+		// 	*buf = string_concat(*buf, ",");
 
 		if (node->content != NULL) {
 			int needed =
@@ -363,15 +363,15 @@ void ast_to_string_recursive(ast *node, int depth, int print_next, char **buf) {
 		}
 
 		if (node->child != NULL) {
-			*buf = string_concat(*buf, ", \"children\": [\n");
+			*buf = string_concat(*buf, ", \"children\": [");
 
 			ast_to_string_recursive(node->child, depth + 1, 1, buf);
 
-			char *tabs = tabs_to_string(depth);
-			*buf = string_concat(*buf, tabs);
+			// char *tabs = tabs_to_string(depth);
+			// *buf = string_concat(*buf, tabs);
 			*buf = string_concat(*buf, "]}");
 
-			free(tabs);
+			// free(tabs);
 		} else {
 			*buf = string_concat(*buf, "}");
 		}
