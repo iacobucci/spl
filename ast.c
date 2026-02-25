@@ -334,36 +334,51 @@ void ast_print_recursive(ast *node, int depth, int print_next) {
 
 void ast_print(ast *node) { ast_print_recursive(node, 0, 1); }
 
-void ast_to_string_recursive(ast *node, int depth, int print_next, char *buf) {
+void ast_to_string_recursive(ast *node, int depth, int print_next, char **buf) {
 	while (node != NULL) {
-		tabs_print(depth);
+		char *tabs = tabs_to_string(depth);
+		*buf = string_concat(*buf, tabs);
+		free(tabs);
 
 		if (node->name == NULL)
-			printf("{");
-		else
-			printf("{\"name\": \"%s\"", node->name);
+			*buf = string_concat(*buf, "{");
+		else {
+			int needed = snprintf(NULL, 0, "{\"name\": \"%s\"", node->name) + 1;
+			char *local = malloc(needed * sizeof(char));
+			sprintf(local, "{\"name\": \"%s\"", node->name);
+			*buf = string_concat(*buf, local);
+			free(local);
+		}
 
 		if (node->name && node->content)
-			printf(",");
+			*buf = string_concat(*buf, ",");
 
-		if (node->content != NULL)
-			printf("\"content\": \"%s\"", node->content);
+		if (node->content != NULL) {
+			int needed =
+				snprintf(NULL, 0, "\"content\": \"%s\"", node->content) + 1;
+			char *local = malloc(needed * sizeof(char));
+			sprintf(local, "\"content\": \"%s\"", node->content);
+			string_concat(*buf, local);
+			free(local);
+		}
 
 		if (node->child != NULL) {
-			printf(", \"children\": [\n");
+			*buf = string_concat(*buf, ", \"children\": [\n");
+
 			ast_to_string_recursive(node->child, depth + 1, 1, buf);
 
-			tabs_print(depth);
-			printf("]}");
+			char *tabs = tabs_to_string(depth);
+			*buf = string_concat(*buf, tabs);
+			*buf = string_concat(*buf, "]}");
+
+			free(tabs);
 		} else {
-			printf("}");
+			*buf = string_concat(*buf, "}");
 		}
 
 		if (node->next) {
-			printf(",");
+			*buf = string_concat(*buf, ",");
 		}
-
-		printf("\n");
 
 		if (print_next == 0)
 			return;
@@ -374,6 +389,6 @@ void ast_to_string_recursive(ast *node, int depth, int print_next, char *buf) {
 
 char *ast_to_string(ast *node) {
 	char *result;
-	ast_to_string_recursive(node, 0, 1, result);
+	ast_to_string_recursive(node, 0, 1, &result);
 	return result;
 }

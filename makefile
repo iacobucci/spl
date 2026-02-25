@@ -20,4 +20,6 @@ sanitize:
 check:
 	valgrind --leak-check=full ./main.out
 
+# prlimit
+
 .PHONY: dev compile main.out

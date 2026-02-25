@@ -12,9 +12,6 @@ void parse_tree(char *str) {
 	parse_result pr = parse(str, value);
 	ast *root = pr.node;
 
-	ast_print(root);
-	printf("\n");
-
 	ast_wipe(root, dq);
 	ast_wipe(root, ws);
 	ast_wipe(root, comma);
@@ -46,6 +43,10 @@ void parse_tree(char *str) {
 
 	ast_print(root);
 
+	char *ats = ast_to_string(root);
+
+	// printf("%p\n", ats);
+
 	printf("%s\n", (pr.matched == MATCHED) ? "matched" : "not matched");
 
 	printf("\n");
@@ -62,24 +63,18 @@ int main() {
 
 	json_free();
 
-	char *s = malloc(sizeof(char) * 100);
-	int len = sprintf(s, "ciao %s!!", "cane");
+	// char *a = "capra";
+	// char *b = "cane";
+	//
+	// char *c = string_concat(a, b);
+	//
+	// printf("%s\n", c);
+	//
+	// char *m1 = string_concat(c, "casa");
+	//
+	// printf("%s\n", m1);
 
-	char *s2 = malloc(sizeof(char) * 100);
-	len = sprintf(s2, "the string was %s", s);
-	free(s);
-
-	printf("%s: %d\n", s2, len);
-	free(s2);
-
-	char *a = "ciao";
-	char *b = "cane";
-
-	char *c = string_concat(a, b);
-
-	printf("%s\n", c);
-
-	free(c);
+	// free(c);
 
 	return 0;
 }
