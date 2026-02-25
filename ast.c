@@ -336,34 +336,31 @@ void ast_print(ast *node) { ast_print_recursive(node, 0, 1); }
 
 void ast_to_string_recursive(ast *node, int depth, int print_next, char **buf) {
 	while (node != NULL) {
-		// char *tabs = tabs_to_string(depth);
-		// *buf = string_concat(*buf, tabs);
-		// free(tabs);
 
 		if (node->name == NULL)
 			*buf = string_concat(*buf, "{");
 		else {
-			int needed = snprintf(NULL, 0, "{\"name\": \"%s\"", node->name) + 1;
+			int needed = snprintf(NULL, 0, "{\"name\":\"%s\"", node->name) + 1;
 			char *local = malloc(needed * sizeof(char));
-			sprintf(local, "{\"name\": \"%s\"", node->name);
+			sprintf(local, "{\"name\":\"%s\"", node->name);
 			*buf = string_concat(*buf, local);
 			free(local);
 		}
 
-		// if (node->name && node->content)
-		// 	*buf = string_concat(*buf, ",");
+		if (node->name && node->content)
+			*buf = string_concat(*buf, ",");
 
 		if (node->content != NULL) {
 			int needed =
-				snprintf(NULL, 0, "\"content\": \"%s\"", node->content) + 1;
+				snprintf(NULL, 0, "\"content\":\"%s\"", node->content) + 1;
 			char *local = malloc(needed * sizeof(char));
-			sprintf(local, "\"content\": \"%s\"", node->content);
-			string_concat(*buf, local);
+			sprintf(local, "\"content\":\"%s\"", node->content);
+			*buf = string_concat(*buf, local);
 			free(local);
 		}
 
 		if (node->child != NULL) {
-			*buf = string_concat(*buf, ", \"children\": [");
+			*buf = string_concat(*buf, ",\"children\":[");
 
 			ast_to_string_recursive(node->child, depth + 1, 1, buf);
 

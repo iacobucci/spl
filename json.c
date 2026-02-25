@@ -277,6 +277,42 @@ void json_init() {
 	value->childs[5] = object;
 }
 
+parse_result json_parse(char *str) {
+	parse_result pr = parse(str, value);
+	ast *root = pr.node;
+
+	ast_wipe(root, dq);
+	ast_wipe(root, ws);
+	ast_wipe(root, comma);
+	ast_wipe(root, lsb);
+	ast_wipe(root, rsb);
+	ast_wipe(root, lcb);
+	ast_wipe(root, rcb);
+	ast_wipe(root, double_dots);
+
+	ast_wipe(root, empty_array);
+	ast_wipe(root, empty_object);
+
+	ast_collapse(root, null);
+	ast_collapse(root, boolean);
+	ast_collapse(root, string);
+	ast_collapse(root, number);
+
+	ast_simplify(root, value_and_comma);
+	ast_simplify(root, one_element_array);
+	ast_simplify(root, many_elements_array);
+	ast_simplify(root, one_or_more_values);
+
+	ast_simplify(root, member_and_comma);
+	ast_simplify(root, one_or_more_members);
+	ast_simplify(root, one_member_object);
+	ast_simplify(root, many_elements_object);
+
+	ast_simplify(root, value);
+
+	return pr;
+}
+
 void json_free() { rule_free(&value); }
 
 void json_test() {

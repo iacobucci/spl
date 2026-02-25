@@ -1,6 +1,7 @@
 #pragma once
 #include "rule.h"
 #include "ast.h"
+#include "parser.h"
 
 extern rule *lcb;
 extern rule *rcb;
@@ -119,6 +120,8 @@ extern rule *boolean;
 extern rule *null;
 
 void json_init();
+
+parse_result json_parse(char *str);
 
 void json_free();
 
