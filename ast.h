@@ -35,6 +35,8 @@ ast *ast_get_root(ast *node);
 
 void ast_free(ast **np);
 
+char* ast_to_string(ast *node);
+
 void ast_print(ast *node);
 
 void ast_simplify(ast *node, struct rule* rule);

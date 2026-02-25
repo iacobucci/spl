@@ -47,6 +47,8 @@ rule *rule_zero_or_more(rule *r);
 
 rule *rule_one_or_more(rule *r);
 
+char *rule_to_string(rule *r);
+
 void rule_print(rule *r);
 
 void rule_clean_already_printed(rule *r);

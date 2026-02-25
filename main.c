@@ -4,6 +4,7 @@
 #include "rule.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 void parse_tree(char *str) {
 	parse_result pr = parse(str, value);
@@ -52,9 +53,22 @@ int main() {
 	parse_result pr;
 	json_init();
 
-	parse_tree("{\"cane\": [1, -1, 0.34234, {\"empty\": [[]]}, -723.23, 2E10, "
-			   "-0.12e226, null], \"CAPRA\": {\"cavallo\"  :false} }");
+	char *j = "{\"cane\": [1, -1, 0.34234, {\"empty\": [[]]}, -723.23, 2E10, "
+			  "-0.12e226, null], \"CAPRA\": {\"cavallo\"  :false} }";
+
+	parse_tree(j);
 
 	json_free();
+
+	char *s = malloc(sizeof(char) * 100);
+	int len = sprintf(s, "ciao %s!!", "cane");
+
+	char *s2 = malloc(sizeof(char) * 100);
+	len = sprintf(s2, "the string was %s", s);
+	free(s);
+
+	printf("%s: %d\n", s2, len);
+	free(s2);
+
 	return 0;
 }

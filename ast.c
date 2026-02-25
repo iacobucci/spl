@@ -300,15 +300,8 @@ void ast_print_recursive(ast *node, int depth, int print_next) {
 		if (node->name && node->content)
 			printf(",");
 
-		// if (node->name)
-		// 	printf("%s: ", node->name);
 		if (node->content != NULL)
 			printf("\"content\": \"%s\"", node->content);
-
-		// else if (node->ruleid)
-		// 	printf("(%d)", node->ruleid);
-		// if (node->prev)
-		// 	printf(" [%d]", node->prev->ruleid);
 
 		if (node->child != NULL) {
 			printf(", \"children\": [\n");
@@ -334,3 +327,47 @@ void ast_print_recursive(ast *node, int depth, int print_next) {
 }
 
 void ast_print(ast *node) { ast_print_recursive(node, 0, 1); }
+
+void ast_to_string_recursive(ast *node, int depth, int print_next) {
+	while (node != NULL) {
+		tabs_print(depth);
+
+		if (node->name == NULL)
+			printf("{");
+		else
+			printf("{\"name\": \"%s\"", node->name);
+
+		if (node->name && node->content)
+			printf(",");
+
+		if (node->content != NULL)
+			printf("\"content\": \"%s\"", node->content);
+
+		if (node->child != NULL) {
+			printf(", \"children\": [\n");
+			ast_print_recursive(node->child, depth + 1, 1);
+
+			tabs_print(depth);
+			printf("]}");
+		} else {
+			printf("}");
+		}
+
+		if (node->next) {
+			printf(",");
+		}
+
+		printf("\n");
+
+		if (print_next == 0)
+			return;
+
+		node = node->next;
+	}
+}
+
+char *ast_to_string(ast *node) {
+	char *result;
+	ast_to_string_recursive(node, 0, 1);
+	return result;
+}
