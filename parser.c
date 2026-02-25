@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "ast.h"
@@ -153,6 +154,8 @@ parse_result parse(char *text, rule *r) {
 
 	return result;
 }
+
+void parse_result_free(parse_result pr) { ast_free(&(pr.node)); }
 
 void parse_assert_free(char *text, rule *r, int how) {
 	assert(parse(text, r).matched == how);

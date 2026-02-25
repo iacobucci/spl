@@ -13,6 +13,8 @@ typedef struct parse_result {
 
 parse_result parse(char *text, rule *r);
 
+void parse_result_free(parse_result pr);
+
 void parse_assert_free(char *text, rule *r, int how);
 
 void parse_assert(char *text, rule *r, int how);

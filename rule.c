@@ -317,7 +317,8 @@ void rule_free_recursive(rule **rp) {
 		free(r->childs);
 	}
 
-	free(r);
+	if (r != NULL)
+		free(r);
 
 	*rp = NULL;
 }

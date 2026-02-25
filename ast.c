@@ -364,11 +364,7 @@ void ast_to_string_recursive(ast *node, int depth, int print_next, char **buf) {
 
 			ast_to_string_recursive(node->child, depth + 1, 1, buf);
 
-			// char *tabs = tabs_to_string(depth);
-			// *buf = string_concat(*buf, tabs);
 			*buf = string_concat(*buf, "]}");
-
-			// free(tabs);
 		} else {
 			*buf = string_concat(*buf, "}");
 		}
@@ -385,7 +381,7 @@ void ast_to_string_recursive(ast *node, int depth, int print_next, char **buf) {
 }
 
 char *ast_to_string(ast *node) {
-	char *result;
+	char *result = NULL;
 	ast_to_string_recursive(node, 0, 1, &result);
 	return result;
 }
