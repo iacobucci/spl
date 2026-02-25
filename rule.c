@@ -13,6 +13,8 @@ int rule_new_id() { return RULE_ID++; }
 
 rule *rule_c(char c) {
 	rule *result = malloc(sizeof(rule));
+	error_check_malloc(result);
+
 	result->c = c;
 	result->childs = NULL;
 	result->id = rule_new_id();
@@ -34,6 +36,8 @@ rule *rule_add_callback(rule *r, void (*callback)(ast *self)) {
 
 rule *rule_builder(int method, rule *r0, va_list args) {
 	rule *result = malloc(sizeof(rule));
+	error_check_malloc(result);
+
 	result->method = method;
 	result->id = RULE_ID++;
 	result->n_childs = 0;
@@ -44,6 +48,7 @@ rule *rule_builder(int method, rule *r0, va_list args) {
 
 	int capacity = 4;
 	result->childs = malloc(sizeof(rule *) * capacity);
+	error_check_malloc(result->childs);
 
 	rule *r_arg = r0;
 
@@ -51,6 +56,7 @@ rule *rule_builder(int method, rule *r0, va_list args) {
 		if (result->n_childs >= capacity) {
 			capacity *= 2;
 			result->childs = realloc(result->childs, sizeof(rule *) * capacity);
+			error_check_malloc(result->childs);
 		}
 
 		r_arg->parent = result;
@@ -84,12 +90,14 @@ rule *rule_and(rule *r0, ...) {
 
 rule *rule_range(char l1, char l2) {
 	rule *result = malloc(sizeof(rule));
+	error_check_malloc(result);
 
 	result->method = OR;
 	result->id = rule_new_id();
 
 	result->n_childs = l2 - l1 + 1;
 	result->childs = malloc(sizeof(rule *) * result->n_childs);
+	error_check_malloc(result->childs);
 
 	result->c = '\0';
 
@@ -106,11 +114,13 @@ rule *rule_range(char l1, char l2) {
 
 rule *rule_literal(char *literal) {
 	rule *result = malloc(sizeof(rule));
+	error_check_malloc(result);
 
 	result->id = rule_new_id();
 	result->method = AND;
 	result->n_childs = strlen(literal);
 	result->childs = malloc(sizeof(rule *) * result->n_childs);
+	error_check_malloc(result->childs);
 
 	result->c = '\0';
 
@@ -126,6 +136,7 @@ rule *rule_literal(char *literal) {
 
 rule *rule_optional(rule *r) {
 	rule *result = malloc(sizeof(rule));
+	error_check_malloc(result);
 	r->parent = result;
 
 	result->method = OPTIONAL;
@@ -133,6 +144,7 @@ rule *rule_optional(rule *r) {
 
 	result->n_childs = 1;
 	result->childs = malloc(sizeof(rule *));
+	error_check_malloc(result->childs);
 	result->childs[0] = r;
 
 	result->c = '\0';
@@ -144,6 +156,7 @@ rule *rule_optional(rule *r) {
 
 rule *rule_zero_or_more(rule *r) {
 	rule *result = malloc(sizeof(rule));
+	error_check_malloc(result);
 	r->parent = result;
 
 	result->method = ZERO_OR_MORE;
@@ -151,6 +164,8 @@ rule *rule_zero_or_more(rule *r) {
 
 	result->n_childs = 1;
 	result->childs = malloc(sizeof(rule *));
+	error_check_malloc(result->childs);
+
 	result->childs[0] = r;
 
 	result->c = '\0';

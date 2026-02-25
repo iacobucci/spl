@@ -11,6 +11,8 @@
 ast *ast_new(char *content, char *name) {
 	ast *result = malloc(sizeof(ast));
 
+	error_check_malloc(result);
+
 	if (content != NULL)
 		result->content = strdup(content);
 	else
@@ -194,7 +196,10 @@ typedef struct {
 static void state_append(collapse_state *state, char c) {
 	if (state->index == state->capacity) {
 		state->capacity *= 2;
+
 		state->buffer = realloc(state->buffer, state->capacity + 1);
+		error_check_malloc(state->buffer);
+
 		if (state->buffer == NULL)
 			exit(-1);
 	}
@@ -212,9 +217,10 @@ static void ast_collapse_recursive(ast *node, rule *r, collapse_state *state) {
 	if (node->ruleid == r->id) {
 		local_state.target = node;
 		local_state.capacity = TO_ADD_INITIAL_BUFFER_LENGTH;
+
 		local_state.buffer = malloc(local_state.capacity + 1);
-		if (local_state.buffer == NULL)
-			exit(-1);
+		error_check_malloc(local_state.buffer);
+
 		local_state.buffer[0] = '\0';
 		local_state.index = 0;
 		state = &local_state;
@@ -328,7 +334,7 @@ void ast_print_recursive(ast *node, int depth, int print_next) {
 
 void ast_print(ast *node) { ast_print_recursive(node, 0, 1); }
 
-void ast_to_string_recursive(ast *node, int depth, int print_next) {
+void ast_to_string_recursive(ast *node, int depth, int print_next, char *buf) {
 	while (node != NULL) {
 		tabs_print(depth);
 
@@ -345,7 +351,7 @@ void ast_to_string_recursive(ast *node, int depth, int print_next) {
 
 		if (node->child != NULL) {
 			printf(", \"children\": [\n");
-			ast_print_recursive(node->child, depth + 1, 1);
+			ast_to_string_recursive(node->child, depth + 1, 1, buf);
 
 			tabs_print(depth);
 			printf("]}");
@@ -368,6 +374,6 @@ void ast_to_string_recursive(ast *node, int depth, int print_next) {
 
 char *ast_to_string(ast *node) {
 	char *result;
-	ast_to_string_recursive(node, 0, 1);
+	ast_to_string_recursive(node, 0, 1, result);
 	return result;
 }

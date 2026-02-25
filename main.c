@@ -2,9 +2,11 @@
 #include "json.h"
 #include "parser.h"
 #include "rule.h"
+#include "utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 void parse_tree(char *str) {
 	parse_result pr = parse(str, value);
@@ -69,6 +71,15 @@ int main() {
 
 	printf("%s: %d\n", s2, len);
 	free(s2);
+
+	char *a = "ciao";
+	char *b = "cane";
+
+	char *c = string_concat(a, b);
+
+	printf("%s\n", c);
+
+	free(c);
 
 	return 0;
 }
