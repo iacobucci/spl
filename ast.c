@@ -304,7 +304,7 @@ void ast_print_recursive(ast *node, int depth, int print_next) {
 			printf("{\"name\": \"%s\"", node->name);
 
 		if (node->name && node->content)
-			printf(",");
+			printf(", ");
 
 		if (node->content != NULL)
 			printf("\"content\": \"%s\"", node->content);
