@@ -178,8 +178,8 @@ void json_init() {
 
 	dq = rule_c('"');
 
-	character =
-		rule_or(digit, rule_range('a', 'z'), rule_range('A', 'Z'), space, NULL);
+	character = rule_or(digit, rule_range('a', 'z'), rule_range('A', 'Z'),
+						minus, point, space, NULL);
 
 	characters = rule_zero_or_more(character);
 
