@@ -24,6 +24,7 @@ parse_result parse_recursive(char *text, rule *r) {
 	}
 
 	parse_result result;
+	result.node = NULL;
 	ast *child;
 
 	if (r->c != '\0') {
