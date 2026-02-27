@@ -226,6 +226,26 @@ array = rule_or(empty_array, one_element_array, many_elements_array, NULL);
 
 It might also seem interesting to define our array rule somewhat like this:
 
+```mermaid
+graph LR
+ array([array])
+ array --> lsb["["]
+ array --> optional_elements["optional_elements"]
+ optional_elements --> opt{"OPT"}
+ opt --> value_or_many_elements["value_or_many_elements"]
+ value_or_many_elements --> or{"OR"}
+ or --> many_elements["many elements"]
+ many_elements --> oom{"OOM"}
+ oom --> value_and_comma["value and comma"]
+ value_and_comma --> value["value"]
+ value_and_comma --> comma[","]
+
+ many_elements --> value1["value"]
+
+ value_or_many_elements --> value2["value"]
+ array --> rsb["]"]
+```
+
 ```c
 value_and_comma = rule_and(value, ws, comma, ws, NULL);
 one_or_more_values = rule_one_or_more(value_and_comma);
