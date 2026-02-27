@@ -30,11 +30,9 @@ int rule_new_id();
 
 rule *rule_new();
 
-rule *rule_literal(char *literal);
-
 rule *rule_c(char c);
 
-rule *rule_range(char l1, char l2);
+rule *rule_literal(char *literal);
 
 rule *rule_add_name(rule *r, char *name);
 
@@ -42,11 +40,13 @@ rule *rule_add_callback(rule *r, void (*callback)(ast *self));
 
 rule *rule_or(rule *r0, ...);
 
+rule *rule_range(char l1, char l2);
+
 rule *rule_and(rule *r0, ...);
 
-rule *rule_optional(rule *r);
-
 rule *rule_repeat(rule *r, int times);
+
+rule *rule_optional(rule *r);
 
 rule *rule_zero_or_more(rule *r);
 

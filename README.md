@@ -4,11 +4,15 @@
 
 This is a C library for building *parsers*, by defining *non-left-recursive* rules in a *context-free* grammar and composing them with *combinators*.
 
+Characters
+
 Combinators:
 
 - **OR**
+	- **RANGE**
 - **AND**
-- **OPTIONAL**
+	- **REPEAT**
+- **OPTIONAL** (Zero or one)
 - **ZERO OR MORE**
 - **ONE OR MORE**
 
@@ -118,22 +122,11 @@ graph TD
  e_or --> escaped_unicode["escaped unicode"]
  escaped_unicode --> ub["\"]
  escaped_unicode --> uu["u"]
- escaped_unicode --> u_or{"OR"}
+ escaped_unicode --> u_rp{"REPEAT(4)"}
+ u_rp --> u_or{"OR"}
  u_or --> d["'0' ... '9'"]
  u_or --> a["'a' ... 'f'"]
  u_or --> aa["'A' ... 'F'"]
- escaped_unicode --> u_or1{"OR"}
- u_or1 --> d1["'0' ... '9'"]
- u_or1 --> a1["'a' ... 'f'"]
- u_or1 --> aa1["'A' ... 'F'"]
- escaped_unicode --> u_or2{"OR"}
- u_or2 --> d2["'0' ... '9'"]
- u_or2 --> a2["'a' ... 'f'"]
- u_or2 --> aa2["'A' ... 'F'"]
- escaped_unicode --> u_or3{"OR"}
- u_or3 --> d3["'0' ... '9'"]
- u_or3 --> a3["'a' ... 'f'"]
- u_or3 --> aa3["'A' ... 'F'"]
  e_or --> others["others..."]
  string --> dq1["#quot;"]
 ```
@@ -151,7 +144,7 @@ backslash = rule_c('\\');
 escaped_quotation_mark = rule_and(backslash, dq, NULL);
 escaped_backslash = rule_and(backslash, backslash, NULL);
 hex = rule_or(rule_range('a', 'f'), rule_range('A', 'F'), digit, NULL);
-escaped_unicode = rule_and(backslash, rule_c('u'), hex, hex, hex, hex, NULL);
+escaped_unicode = rule_and(backslash, rule_c('u'), rule_repeat(hex, 4), NULL);
 escaped_forward_slash = rule_and(backslash, rule_c('/'), NULL);
 escaped_backspace = rule_and(backslash, rule_c('b'), NULL);
 escaped_formfeed = rule_and(backslash, rule_c('f'), NULL);
@@ -165,7 +158,6 @@ zero_or_more_optional_escapes_or_characters = rule_zero_or_more(rule_or(characte
 
 string = rule_and(dq, zero_or_more_optional_escapes_or_characters, dq, NULL);
 ```
-
 
 *Arrays* are lists of *values*. Note that we are not defining what a value is for now. We are only declaring it. Because of the expressive limitations of our combinators, we need to describe a bunch of cases for how arrays are shaped. They can be *empty* (`[]`), containing only *one* element (`[1]`), or *many* (`[1,2,3]`).
 
