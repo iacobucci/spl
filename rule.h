@@ -1,7 +1,7 @@
 #pragma once
 #include "ast.h"
 
-enum rule_method { ZERO_OR_MORE, ONE_OR_MORE, AND, OR, OPTIONAL };
+enum rule_method { ZERO_OR_MORE, ONE_OR_MORE, AND, OR, OPTIONAL, REPEAT };
 
 #ifndef STRUCT_RULE
 #define STRUCT_RULE
@@ -20,6 +20,7 @@ typedef struct rule {
 	char *name;
 	void (*callback)(struct ast *self);
 
+	int repeats;
 	int visited;
 } rule;
 
@@ -42,6 +43,8 @@ rule *rule_or(rule *r0, ...);
 rule *rule_and(rule *r0, ...);
 
 rule *rule_optional(rule *r);
+
+rule *rule_repeat(rule *r, int times);
 
 rule *rule_zero_or_more(rule *r);
 

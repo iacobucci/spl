@@ -159,14 +159,14 @@ parse_result parse(char *text, rule *r) {
 void parse_result_free(parse_result pr) { ast_free(&(pr.node)); }
 
 void parse_assert_free(char *text, rule *r, int how) {
-	assert(parse(text, r).matched == how);
+	assert(parse(text, r).matched == how && text);
 	rule_free(&r);
 	if (PARSER_DEBUG)
 		printf("\n");
 }
 
 void parse_assert(char *text, rule *r, int how) {
-	assert(parse(text, r).matched == how);
+	assert(parse(text, r).matched == how && text);
 	if (PARSER_DEBUG)
 		printf("\n");
 }

@@ -20,6 +20,8 @@ rule *rule_c(char c) {
 	result->id = rule_new_id();
 	result->n_childs = 0;
 	result->parent = NULL;
+
+	result->repeats = 1;
 	result->visited = 0;
 	return result;
 }
@@ -44,23 +46,25 @@ rule *rule_builder(int method, rule *r0, va_list args) {
 
 	result->c = '\0';
 
+	result->repeats = 1;
 	result->visited = 0;
 
-	int capacity = 4;
-	result->childs = malloc(sizeof(rule *) * capacity);
-	error_check_malloc(result->childs);
+	int capacity = 0;
 
 	rule *r_arg = r0;
+	result->childs = NULL;
 
 	while (r_arg != NULL) {
-		if (result->n_childs >= capacity) {
-			capacity *= 2;
-			result->childs = realloc(result->childs, sizeof(rule *) * capacity);
-			error_check_malloc(result->childs);
-		}
+		capacity += r_arg->repeats;
+		result->childs = realloc(result->childs, sizeof(rule *) * capacity);
+		error_check_malloc(result->childs);
 
 		r_arg->parent = result;
-		result->childs[result->n_childs++] = r_arg;
+
+		for (int i = 0; i < r_arg->repeats; i++) {
+			result->childs[result->n_childs] = r_arg;
+			result->n_childs++;
+		}
 
 		r_arg = va_arg(args, rule *);
 	}
@@ -101,6 +105,7 @@ rule *rule_range(char l1, char l2) {
 
 	result->c = '\0';
 
+	result->repeats = 1;
 	result->visited = 0;
 
 	int i = 0;
@@ -124,6 +129,7 @@ rule *rule_literal(char *literal) {
 
 	result->c = '\0';
 
+	result->repeats = 1;
 	result->visited = 0;
 
 	for (int i = 0; i < result->n_childs; i++) {
@@ -149,9 +155,15 @@ rule *rule_optional(rule *r) {
 
 	result->c = '\0';
 
+	result->repeats = 1;
 	result->visited = 0;
 
 	return result;
+}
+
+rule *rule_repeat(rule *r, int times) {
+	r->repeats = times;
+	return r;
 }
 
 rule *rule_zero_or_more(rule *r) {
@@ -170,6 +182,7 @@ rule *rule_zero_or_more(rule *r) {
 
 	result->c = '\0';
 
+	result->repeats = 1;
 	result->visited = 0;
 
 	return result;
