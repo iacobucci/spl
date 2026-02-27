@@ -11,11 +11,11 @@ int RULE_DEPTH = 0;
 
 int rule_new_id() { return RULE_ID++; }
 
-rule *rule_c(char c) {
+rule *rule_new() {
 	rule *result = malloc(sizeof(rule));
 	error_check_malloc(result);
 
-	result->c = c;
+	result->c = '\0';
 	result->childs = NULL;
 	result->id = rule_new_id();
 	result->n_childs = 0;
@@ -23,6 +23,12 @@ rule *rule_c(char c) {
 
 	result->repeats = 1;
 	result->visited = 0;
+	return result;
+}
+
+rule *rule_c(char c) {
+	rule *result = rule_new();
+	result->c = c;
 	return result;
 }
 
@@ -37,33 +43,30 @@ rule *rule_add_callback(rule *r, void (*callback)(ast *self)) {
 }
 
 rule *rule_builder(int method, rule *r0, va_list args) {
-	rule *result = malloc(sizeof(rule));
-	error_check_malloc(result);
-
+	rule *result = rule_new();
 	result->method = method;
-	result->id = RULE_ID++;
-	result->n_childs = 0;
 
-	result->c = '\0';
-
-	result->repeats = 1;
-	result->visited = 0;
-
-	int capacity = 0;
+	int capacity = 4;
+	result->childs = malloc(sizeof(rule *) * capacity);
+	error_check_malloc(result->childs);
 
 	rule *r_arg = r0;
-	result->childs = NULL;
 
+	int i = 0;
 	while (r_arg != NULL) {
-		capacity += r_arg->repeats;
-		result->childs = realloc(result->childs, sizeof(rule *) * capacity);
-		error_check_malloc(result->childs);
+		result->n_childs += r_arg->repeats;
+
+		while (result->n_childs >= capacity) {
+			capacity *= 2;
+			result->childs = realloc(result->childs, sizeof(rule *) * capacity);
+			error_check_malloc(result->childs);
+		}
 
 		r_arg->parent = result;
 
-		for (int i = 0; i < r_arg->repeats; i++) {
-			result->childs[result->n_childs] = r_arg;
-			result->n_childs++;
+		for (int j = 0; j < r_arg->repeats; j++) {
+			result->childs[i] = r_arg;
+			i++;
 		}
 
 		r_arg = va_arg(args, rule *);
@@ -93,20 +96,12 @@ rule *rule_and(rule *r0, ...) {
 }
 
 rule *rule_range(char l1, char l2) {
-	rule *result = malloc(sizeof(rule));
-	error_check_malloc(result);
+	rule *result = rule_new();
 
 	result->method = OR;
-	result->id = rule_new_id();
-
 	result->n_childs = l2 - l1 + 1;
 	result->childs = malloc(sizeof(rule *) * result->n_childs);
 	error_check_malloc(result->childs);
-
-	result->c = '\0';
-
-	result->repeats = 1;
-	result->visited = 0;
 
 	int i = 0;
 	for (char c = l1; c < l2 + 1; c++, i++) {
@@ -118,19 +113,11 @@ rule *rule_range(char l1, char l2) {
 }
 
 rule *rule_literal(char *literal) {
-	rule *result = malloc(sizeof(rule));
-	error_check_malloc(result);
-
-	result->id = rule_new_id();
+	rule *result = rule_new();
 	result->method = AND;
 	result->n_childs = strlen(literal);
 	result->childs = malloc(sizeof(rule *) * result->n_childs);
 	error_check_malloc(result->childs);
-
-	result->c = '\0';
-
-	result->repeats = 1;
-	result->visited = 0;
 
 	for (int i = 0; i < result->n_childs; i++) {
 		result->childs[i] = rule_c(literal[i]);
@@ -141,22 +128,14 @@ rule *rule_literal(char *literal) {
 }
 
 rule *rule_optional(rule *r) {
-	rule *result = malloc(sizeof(rule));
-	error_check_malloc(result);
-	r->parent = result;
+	rule *result = rule_new();
 
 	result->method = OPTIONAL;
-	result->id = RULE_ID++;
-
+	r->parent = result;
 	result->n_childs = 1;
 	result->childs = malloc(sizeof(rule *));
 	error_check_malloc(result->childs);
 	result->childs[0] = r;
-
-	result->c = '\0';
-
-	result->repeats = 1;
-	result->visited = 0;
 
 	return result;
 }
@@ -167,23 +146,14 @@ rule *rule_repeat(rule *r, int times) {
 }
 
 rule *rule_zero_or_more(rule *r) {
-	rule *result = malloc(sizeof(rule));
-	error_check_malloc(result);
+	rule *result = rule_new();
+
 	r->parent = result;
-
 	result->method = ZERO_OR_MORE;
-	result->id = RULE_ID++;
-
 	result->n_childs = 1;
 	result->childs = malloc(sizeof(rule *));
 	error_check_malloc(result->childs);
-
 	result->childs[0] = r;
-
-	result->c = '\0';
-
-	result->repeats = 1;
-	result->visited = 0;
 
 	return result;
 }

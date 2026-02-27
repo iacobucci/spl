@@ -28,6 +28,8 @@ typedef struct rule {
 
 int rule_new_id();
 
+rule *rule_new();
+
 rule *rule_literal(char *literal);
 
 rule *rule_c(char c);

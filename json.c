@@ -188,7 +188,7 @@ void json_init() {
 	backslash = rule_c('\\');
 
 	escaped_unicode =
-		rule_and(backslash, rule_c('u'), hex, hex, hex, hex, NULL);
+		rule_and(backslash, rule_c('u'), rule_repeat(hex, 4), NULL);
 
 	escaped_quotation_mark = rule_and(backslash, dq, NULL);
 
@@ -220,7 +220,8 @@ void json_init() {
 	double_dots = rule_c(':');
 
 	// arrays
-	value = malloc(sizeof(rule));
+	value = rule_new();
+
 	comma = rule_c(',');
 	value_and_comma = rule_and(value, ws, comma, ws, NULL);
 
@@ -266,7 +267,6 @@ void json_init() {
 
 	value->name = strdup("value");
 	value->method = OR;
-	value->id = rule_new_id();
 	value->n_childs = 6;
 	value->childs = malloc(sizeof(rule *) * value->n_childs);
 	value->childs[0] = number;
@@ -330,11 +330,11 @@ void json_test() {
 	parse_assert("\"\\u1ab0 \\\"ciao\\\"\"", string, MATCHED);
 	parse_assert("{}", value, MATCHED);
 	parse_assert("[1,2,3,[4,5,6]]", value, MATCHED);
-	// parse_assert("{\"ciao\":10}", value, MATCHED);
-	// parse_assert("{\"ciao\":{\"cane\":10}}", value, MATCHED);
-	// parse_assert("{\"cane\": [1, -1, 0.34234, -723.23, 2E10, -0.12e226]}",
-	// 			 value, MATCHED);
-	// parse_assert("{\"cane\": [1, -1, 0.34234, -723.23, 2E10, "
-	// 			 "-0.12e226, null], \"CAPRA\": {\"cavallo\"  :false} }",
-	// 			 value, MATCHED);
+	parse_assert("{\"ciao\":10}", value, MATCHED);
+	parse_assert("{\"ciao\":{\"cane\":10}}", value, MATCHED);
+	parse_assert("{\"cane\": [1, -1, 0.34234, -723.23, 2E10, -0.12e226]}",
+				 value, MATCHED);
+	parse_assert("{\"cane\": [1, -1, 0.34234, -723.23, 2E10, "
+				 "-0.12e226, null], \"CAPRA\": {\"cavallo\"  :false} }",
+				 value, MATCHED);
 }
