@@ -108,7 +108,7 @@ extern rule *empty_object;
 
 extern rule *one_member_object;
 
-extern rule *many_elements_object;
+extern rule *many_members_object;
 
 extern rule *object;
 

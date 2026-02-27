@@ -110,7 +110,7 @@ rule *empty_object;
 
 rule *one_member_object;
 
-rule *many_elements_object;
+rule *many_members_object;
 
 rule *object;
 
@@ -235,7 +235,7 @@ void json_init() {
 		rule_and(lsb, ws, one_or_more_values, ws, value, ws, rsb, NULL);
 
 	array = rule_add_name(
-		rule_or(many_elements_array, one_element_array, empty_array, NULL),
+		rule_or(empty_array, one_element_array, many_elements_array, NULL),
 		"array");
 
 	// objects
@@ -252,11 +252,11 @@ void json_init() {
 
 	one_member_object = rule_and(lcb, ws, member, ws, rcb, NULL);
 
-	many_elements_object =
+	many_members_object =
 		rule_and(lcb, ws, one_or_more_members, ws, member, ws, rcb, NULL);
 
 	object = rule_add_name(
-		rule_or(empty_object, one_member_object, many_elements_object, NULL),
+		rule_or(empty_object, one_member_object, many_members_object, NULL),
 		"object");
 	//
 
@@ -309,7 +309,7 @@ parse_result json_parse(char *str) {
 	ast_simplify(root, member_and_comma);
 	ast_simplify(root, one_or_more_members);
 	ast_simplify(root, one_member_object);
-	ast_simplify(root, many_elements_object);
+	ast_simplify(root, many_members_object);
 
 	ast_simplify(root, value);
 

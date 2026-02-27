@@ -24,6 +24,10 @@ Ast operations:
 - **SIMPLIFY**
 - **FLATTEN**
 
+Tree exploration:
+
+Including Spl in your project is simple, just copy the `.c` and `.h` files in one of your projects subdirectories and add the `.c` files to your compilers sources.
+
 ## An example: the Json format
 
 The [included](./json.c) example is based on the [railroad diagrams](https://en.wikipedia.org/wiki/Syntax_diagram) from the [Json spec page](https://www.json.org/json-en.html), and implements a correct json parser, with some limitations[^string_limitations] to the expressivity of strings.
@@ -167,7 +171,7 @@ string = rule_and(dq, zero_or_more_optional_escapes_or_characters, dq, NULL);
 
 ### Arrays
 
-*Arrays* are lists of *values*. Note that we are not defining what a value is for now. We are only declaring it. Because of the expressive limitations of our combinators, we need to describe a bunch of cases for how arrays are shaped. They can be *empty* (`[]`), containing only *one* element (`[1]`), or *many* (`[1,2,3]`).
+*Arrays* are lists of *values*, and can be *empty* (`[]`), containing only *one* element (`[1]`), or *many* (`[1,2,3]`).
 
 ```mermaid
 graph TD
@@ -195,6 +199,8 @@ graph TD
  many_elements_array --> rsb2["]"]
 ```
 
+Arrays have rules also for whitespaces, which can be space characters, tabs, and new lines. Note that we are not defining what a value is for now, we are only declaring it. 
+
 ```c
 value = rule_new();
 
@@ -215,28 +221,29 @@ one_element_array = rule_and(lsb, ws, value, ws, rsb, NULL);
 one_or_more_values = rule_one_or_more(value_and_comma);
 many_elements_array = rule_and(lsb, ws, one_or_more_values, ws, value, ws, rsb, NULL);
 
-array = rule_or(many_elements_array, one_element_array, empty_array, NULL); // order is important!
+array = rule_or(empty_array, one_element_array, many_elements_array, NULL);
 ```
 
-Notice the addition of whitespace (`ws`). It might also seem interesting to define our array rule somewhat like this:
+It might also seem interesting to define our array rule somewhat like this:
 
 ```c
+value_and_comma = rule_and(value, ws, comma, ws, NULL);
 one_or_more_values = rule_one_or_more(value_and_comma);
-many_elements_array = rule_and(one_or_more_values, ws, value, NULL);
+many_elements = rule_and(one_or_more_values, ws, value, NULL);
 
-value_or_many_elements = rule_or(many_elements_array, value, NULL); // order is important!
+value_or_many_elements = rule_or(many_elements, value, NULL); // order is important!
 optional_elements = rule_optional(value_or_many_elements);
 
-array = rule_add_name(rule_and(lsb, ws, optional_elements, ws, rsb, NULL), "array");
+array = rule_and(lsb, ws, optional_elements, ws, rsb, NULL);
 ```
 
-And it would totally work. We just have to be careful to order the *OR*'s child rules so that the backtracking system works as expected.
+And it would totally work. Note that in this case we have to be careful with the order the *OR*'s child rules, so that the backtracking system works as expected. In the first implementation, when the backtracker fails, the text to be consumed by the next try is restored fully: if the array is not empty the parser starts back from the initial `[`. In the second implementation, the rules *one_or_more_values* and *value* share the same prefix. This is a more delicate case, that can be explained with this example:
 
-```
+```plaintext
 [ 1, 2 ]
   ^
-  it is important that the parser is first trying to match for a *many_elements_array* rule.
-  if we defined our grammar so that the parser would be matching for *value*, the remaining text would be ", 2 ]", which would fail every time.
+  it is important that the parser is first trying to match for a *many_elements* rule.
+  if we defined our grammar so that the parser would first be matching for *value*, a first match would succed, but then the remaining text would turn out to be ", 2 ]", and the parser would fail there every time, since we havent defined rules that start with a comma!
 
 [ 1, 2 ]
      ^
@@ -244,20 +251,65 @@ And it would totally work. We just have to be careful to order the *OR*'s child 
      this rule matching succedes, and the parsing continues.
 ```
 
-In general, the children of *OR* rules which are are *complex* [^complex_rules] have to be sorted in:
 
-1. alphabetical order.
-1. order of length.
-
-[^complex_rules]: Here we say that a rule is complex if it matches ...
+In general, and critically when rules share the same prefix, the children of *OR* rules should be sorted by their *specificity*. First the most specific (and longer), then the more general ones (and shorter).
 
 ### Objects
 
-*Objects* are maps for *keys* and *values*.
+*Objects* are maps of *keys* and *values*. It's pretty easy to implement them after arrays.
+
+```mermaid
+graph TD
+ object(["object"])
+ object --> or{"OR"}
+ or --> empty_object["empty object"]
+ empty_object --> lcb["{"]
+ empty_object --> rcb["}"]
+
+ or --> one_member_object["one member object"]
+ one_member_object --> lcb1["{"]
+ one_member_object --> member["member"]
+ member --> string["value"]
+ member --> double_dots[":"]
+ member --> value["value"]
+ one_member_object --> rcb1["}"]
+
+ or --> many_members_object["many members object"]
+ many_members_object --> lcb2["{"]
+ many_members_object --> member2["member"]
+
+ many_members_object --> oom{"OOM"}
+ oom --> member_and_comma
+ member_and_comma --> member1
+ member1 --> string1["string"]
+ member1 --> double_dots1[":"]
+ member1 --> value1["value"]
+ member_and_comma --> comma[","]
+
+ member2 --> string2["string"]
+ member2 --> double_dots2[":"]
+ member2 --> value2["value"]
+ many_members_object --> rcb2["}"]
+```
+
+```c
+double_dots = rule_c(':');
+
+member = rule_and(ws, string, ws, double_dots, ws, value, NULL);
+member_and_comma = rule_and(member, ws, comma, ws, NULL);
+one_or_more_members = rule_one_or_more(member_and_comma);
+
+empty_object = rule_and(lcb, ws, rcb, NULL);
+one_member_object = rule_and(lcb, ws, member, ws, rcb, NULL);
+many_members_object = rule_and(lcb, ws, one_or_more_members, ws, member, ws, rcb, NULL);
+
+object = rule_or(empty_object, one_member_object, many_members_object, NULL);
+```
+
 
 ### Values altogether
 
-There are still a couple of values that Json allows: *booleans* and *nulls*:
+There are still a couple of values that Json allows for: *booleans* and *nulls*:
 
 ```mermaid
 graph TD
@@ -310,4 +362,4 @@ value->childs[5] = object;
 
 # Future extensions
 
-Despite this library is flawed and at times inefficient, it could power a real programming language, so that's an idea for a future extension...
+Despite this library is flawed and in some bits inefficient, it could power a real programming language, so that's an idea for a future extension...
