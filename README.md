@@ -2,16 +2,18 @@
 
 ---
 
-This is a C library for building *parsers*, by defining *non-left-recursive* rules in a *context-free* grammar and composing them with *combinators*.
+This is a C library for building *parsers*, by defining *non-left-recursive* rules in a *context-free* grammar and composing them with *combinators*, and operating on the resulting *abstract syntax trees*.
+
+## Features
 
 Characters
 
 Combinators:
 
 - **OR**
-	- **RANGE**
+ 	- **RANGE**
 - **AND**
-	- **REPEAT**
+ 	- **REPEAT**
 - **OPTIONAL** (Zero or one)
 - **ZERO OR MORE**
 - **ONE OR MORE**
@@ -22,15 +24,17 @@ Ast operations:
 - **SIMPLIFY**
 - **FLATTEN**
 
-## Example - json
+## An example: the Json format
 
-The [included](./json.c) example is based on the [railroad diagrams](https://en.wikipedia.org/wiki/Syntax_diagram) from the [Json spec page](https://www.json.org/json-en.html), and implements a correct json parser, with limitations^[string_limitations] to the expressivity of strings.
+The [included](./json.c) example is based on the [railroad diagrams](https://en.wikipedia.org/wiki/Syntax_diagram) from the [Json spec page](https://www.json.org/json-en.html), and implements a correct json parser, with some limitations[^string_limitations] to the expressivity of strings.
 
-^[string_limitations]: Variable-length encodings, such as [Unicode](https://en.wikipedia.org/wiki/Unicode), are not supported. Also not all ASCII characters have been inserted in the example.
+[^string_limitations]: Variable-length encodings, such as [Unicode](https://en.wikipedia.org/wiki/Unicode), are not supported. Also not all ASCII characters have been inserted in the example.
 
 It makes sense to start and develop the simpler aspects of the grammar first, so that we can catch bugs in our thought process from the beginning. A *number* is already a valid Json sentence, so let's start by modelling numbers.
 
 ### Numbers
+
+Numbers in Json can be anything like `0`, `1`, `1968`, `3.14159`, `-1230.445e-8`. Here is a graph that formalizes the constraints for what a number is. We are indicating *OR*s, *OPTIONAL*s, *ZERO OR MORE*s, *ONE OR MORE*s and *REPEAT*(*n*)s with the diamond shape. A *RANGE* from the character `'f'` to the character `'t'` is here denoted with `'f' ... 't'`, and *AND*s are simply the many arrows that draw out of a block.
 
 ```mermaid
 graph TD
@@ -95,9 +99,11 @@ optional_exponential_part = rule_optional(exponential_part);
 number = rule_and(optional_minus, non_decimal_part, optional_decimal_part, optional_exponential_part, NULL);
 ```
 
+We are keeping references to the intermediate rules, such as `digit`, not only to keep code clean and possibly reuse our carefully built rules, but also to clean the AST of unwanted nodes that were added because of those very intermediate rules.
+
 ### Strings
 
-*Strings* are series of characters surrounded by double quotes. Here we are only dealing with [ASCII](https://en.wikipedia.org/wiki/ASCII) encodings, that is, we are dealing with 1 byte chars^[string_limitations]. Some [escape sequences](https://en.wikipedia.org/wiki/Escape_character), for example the escaped double quotes `\"` and escaped backslash `\\`, are allowed in any place in between the double quotes.
+*Strings* are series of characters surrounded by double quotes. Here we are only dealing with [ASCII](https://en.wikipedia.org/wiki/ASCII) encodings, that is, we are dealing with 1 byte chars[^string_limitations]. Some [escape sequences](https://en.wikipedia.org/wiki/Escape_character), for example the escaped double quotes `\"` and escaped backslash `\\`, are allowed in any place in between the double quotes.
 
 ```mermaid
 graph TD
@@ -131,7 +137,7 @@ graph TD
  string --> dq1["#quot;"]
 ```
 
-Some more escape sequences are allowed. Notice how 
+A way of saying that, at any point in the sequence, either a simple character or an escape sequence can appear, is encapsulating an *OR* between *characters* and *escape sequences* in a *ZERO OR MORE* rule.
 
 ```c
 space = rule_c(' ');
@@ -159,23 +165,120 @@ zero_or_more_optional_escapes_or_characters = rule_zero_or_more(rule_or(characte
 string = rule_and(dq, zero_or_more_optional_escapes_or_characters, dq, NULL);
 ```
 
+### Arrays
+
 *Arrays* are lists of *values*. Note that we are not defining what a value is for now. We are only declaring it. Because of the expressive limitations of our combinators, we need to describe a bunch of cases for how arrays are shaped. They can be *empty* (`[]`), containing only *one* element (`[1]`), or *many* (`[1,2,3]`).
 
+```mermaid
+graph TD
+ array([array])
+ array --> or{"OR"}
+
+ or --> empty_array["empty array"]
+ empty_array --> lsb["["]
+ empty_array --> rsb["]"]
+
+ or --> one_element_array["one element array"]
+
+ one_element_array --> lsb1["["]
+ one_element_array --> value1["value"]
+ one_element_array --> rsb1["]"]
+
+ or --> many_elements_array["many elements array"]
+
+ many_elements_array --> lsb2["["]
+ many_elements_array --> oom{"OOM"}
+ oom --> value_and_comma("value_and_comma")
+ value_and_comma --> value2["value"]
+ value_and_comma --> comma["','"]
+ many_elements_array --> value21["value"]
+ many_elements_array --> rsb2["]"]
+```
+
 ```c
-value = malloc(sizeof(rule));
+value = rule_new();
+
+space = rule_c(' ');
+tab = rule_c('\t');
+linefeed = rule_c('\n');
+cr = rule_c('\r');
+
+ws = rule_zero_or_more(rule_or(space, tab, linefeed, cr, NULL));
+
+lsb = rule_c('[');
+rsb = rule_c(']');
 comma = rule_c(',');
 value_and_comma = rule_and(value, ws, comma, ws, NULL);
 
 empty_array = rule_and(lsb, ws, rsb, NULL);
 one_element_array = rule_and(lsb, ws, value, ws, rsb, NULL);
 one_or_more_values = rule_one_or_more(value_and_comma);
-many_elements_array =
- rule_and(lsb, ws, one_or_more_values, ws, value, ws, rsb, NULL);
+many_elements_array = rule_and(lsb, ws, one_or_more_values, ws, value, ws, rsb, NULL);
 
-array = rule_or(many_elements_array, one_element_array, empty_array, NULL);
+array = rule_or(many_elements_array, one_element_array, empty_array, NULL); // order is important!
 ```
 
+Notice the addition of whitespace (`ws`). It might also seem interesting to define our array rule somewhat like this:
+
+```c
+one_or_more_values = rule_one_or_more(value_and_comma);
+many_elements_array = rule_and(one_or_more_values, ws, value, NULL);
+
+value_or_many_elements = rule_or(many_elements_array, value, NULL); // order is important!
+optional_elements = rule_optional(value_or_many_elements);
+
+array = rule_add_name(rule_and(lsb, ws, optional_elements, ws, rsb, NULL), "array");
+```
+
+And it would totally work. We just have to be careful to order the *OR*'s child rules so that the backtracking system works as expected.
+
+```
+[ 1, 2 ]
+  ^
+  it is important that the parser is first trying to match for a *many_elements_array* rule.
+  if we defined our grammar so that the parser would be matching for *value*, the remaining text would be ", 2 ]", which would fail every time.
+
+[ 1, 2 ]
+     ^
+     finally here the *one_or_more_values* rule fails, so the parser will try to match "2 ]" with the next rule, *value*.
+     this rule matching succedes, and the parsing continues.
+```
+
+In general, the children of *OR* rules which are are *complex* [^complex_rules] have to be sorted in:
+
+1. alphabetical order.
+1. order of length.
+
+[^complex_rules]: Here we say that a rule is complex if it matches ...
+
+### Objects
+
 *Objects* are maps for *keys* and *values*.
+
+### Values altogether
+
+There are still a couple of values that Json allows: *booleans* and *nulls*:
+
+```mermaid
+graph TD
+ boolean([boolean])
+ boolean --> or{"OR"}
+ or --> true["#quot;true#quot;"]
+ or --> false["#quot;false#quot;"]
+
+ null([null])
+ null --> def["#quot;null#quot;"]
+```
+
+Since they have no ambiguity, we can define them as literals.
+
+```c
+boolean_true = rule_literal("true");
+boolean_false = rule_literal("false");
+boolean = rule_or(boolean_false, boolean_true, NULL);
+
+null = rule_literal("null");
+```
 
 Finally, we can define *Values* as either *numbers*, *strings*, *booleans*, *nulls*, *arrays* or *objects*.
 
@@ -195,7 +298,6 @@ This has to be done "manually", indicating how many child rules `value` has.
 
 ```c
 value->method = OR;
-value->id = rule_new_id();
 value->n_childs = 6;
 value->childs = malloc(sizeof(rule *) * value->n_childs);
 value->childs[0] = number;
@@ -205,3 +307,7 @@ value->childs[3] = null;
 value->childs[4] = array;
 value->childs[5] = object;
 ```
+
+# Future extensions
+
+Despite this library is flawed and at times inefficient, it could power a real programming language, so that's an idea for a future extension...

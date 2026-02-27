@@ -176,6 +176,7 @@ void json_init() {
 									optional_exponential_part, NULL),
 						   "number");
 
+	// strings
 	dq = rule_c('"');
 
 	character = rule_or(digit, rule_range('a', 'z'), rule_range('A', 'Z'),
@@ -216,8 +217,7 @@ void json_init() {
 	string = rule_add_name(
 		rule_and(dq, zero_or_more_optional_escapes_or_characters, dq, NULL),
 		"string");
-
-	double_dots = rule_c(':');
+	//
 
 	// arrays
 	value = rule_new();
@@ -237,7 +237,9 @@ void json_init() {
 	array = rule_add_name(
 		rule_or(many_elements_array, one_element_array, empty_array, NULL),
 		"array");
-	//
+
+	// objects
+	double_dots = rule_c(':');
 
 	member = rule_add_name(
 		rule_and(ws, string, ws, double_dots, ws, value, NULL), "member");
@@ -256,6 +258,7 @@ void json_init() {
 	object = rule_add_name(
 		rule_or(empty_object, one_member_object, many_elements_object, NULL),
 		"object");
+	//
 
 	boolean_true = rule_literal("true");
 	boolean_false = rule_literal("false");
