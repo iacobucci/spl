@@ -394,7 +394,7 @@ graph TD
  or --> object(["object"])
 ```
 
-This has to be done "manually", indicating how many child rules `value` has.
+This is here done "manually", indicating how many child rules `value` has. Notice how the definition of what a value is is cyclic. A value can be an array, and arrays contain values. By separating the declaration and the definition of `value`, we closed the loop!
 
 ```c
 value->method = OR;
