@@ -156,7 +156,10 @@ parse_result parse(char *text, rule *r) {
 	return result;
 }
 
-void parse_result_free(parse_result pr) { ast_free(&(pr.node)); }
+void parse_result_free(parse_result pr) {
+	pr.matched = NOT_MATCHED;
+	ast_free(&(pr.node));
+}
 
 void parse_assert_free(char *text, rule *r, int how) {
 	assert(parse(text, r).matched == how);

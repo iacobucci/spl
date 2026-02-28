@@ -309,8 +309,11 @@ void ast_print_recursive(ast *node, int depth, int print_next) {
 		if (node->content != NULL)
 			printf("\"content\": \"%s\"", node->content);
 
+		if ((node->name || node->content) && node->child)
+			printf(", ");
+
 		if (node->child != NULL) {
-			printf(", \"children\": [\n");
+			printf("\"children\": [\n");
 			ast_print_recursive(node->child, depth + 1, 1);
 
 			tabs_print(depth);
@@ -359,8 +362,11 @@ void ast_to_string_recursive(ast *node, int depth, int print_next, char **buf) {
 			free(local);
 		}
 
+		if ((node->name || node->content) && node->child)
+			*buf = string_concat(*buf, ",");
+
 		if (node->child != NULL) {
-			*buf = string_concat(*buf, ",\"children\":[");
+			*buf = string_concat(*buf, "\"children\":[");
 
 			ast_to_string_recursive(node->child, depth + 1, 1, buf);
 

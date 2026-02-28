@@ -40,7 +40,7 @@ rule *rule_add_callback(rule *r, void (*callback)(ast *self));
 
 rule *rule_or(rule *r0, ...);
 
-rule *rule_range(char l1, char l2);
+rule *rule_range(char c1, char c2);
 
 rule *rule_and(rule *r0, ...);
 

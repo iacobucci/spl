@@ -95,16 +95,16 @@ rule *rule_and(rule *r0, ...) {
 	return result;
 }
 
-rule *rule_range(char l1, char l2) {
+rule *rule_range(char c1, char c2) {
 	rule *result = rule_new();
 
 	result->method = OR;
-	result->n_childs = l2 - l1 + 1;
+	result->n_childs = c2 - c1 + 1;
 	result->childs = malloc(sizeof(rule *) * result->n_childs);
 	error_check_malloc(result->childs);
 
 	int i = 0;
-	for (char c = l1; c < l2 + 1; c++, i++) {
+	for (char c = c1; c < c2 + 1; c++, i++) {
 		result->childs[i] = rule_c(c);
 		result->childs[i]->parent = result;
 	}

@@ -6,17 +6,49 @@ This is a C library for building *parsers*, by defining *non-left-recursive* rul
 
 ## Features
 
-Characters
+Including Spl in your project is simple, just copy the `.c` and `.h` files in one of your projects subdirectories and add the `.c` files to your compilers sources. The library provides the function:
 
-Combinators:
+```c
+parse_result parse(char *text, rule *r);
+```
 
-- **OR**
- 	- **RANGE**
-- **AND**
- 	- **REPEAT**
-- **OPTIONAL** (Zero or one)
-- **ZERO OR MORE**
-- **ONE OR MORE**
+Which consumes some `text` as input and determines if it respects the grammar rules `r`.
+
+```c
+char *text = "123";
+rule *num = rule_one_or_more(rule_range('0', '9'));
+parse_result pr = parse(text, num);
+ast *a = pr.node;
+
+ast_collapse(a, num);
+
+if (pr.matched == MATCHED) {
+	char *s = ast_to_string(a);
+	printf("%s\n", s); // {"content":"123"}
+	free(s);
+}
+
+rule_free(&num);
+parse_result_free(pr);
+```
+
+A `parse_result` struct has a `matched` field that can be either `MATCHED` or `NOT_MATCHED`, and a `node` field that holds the abstract syntax tree that is built from the text, if the text matches the grammar.
+
+### Rules
+
+To define a grammar we need to define rules for it, and `rule.h` provides some methods to help us with that.
+
+- `rule *rule_c(char c)`: creates a rule that matches a character `c`.
+- `rule *rule_literal(char *literal)`: creates a rule that matches a non-ambiguous sequence of characters, `literal`.
+- `rule *rule_or(rule r0, ...)`: is a function with variable arguments: rules that can match alternatively. It has to be terminated with a `NULL` value. The parser tries every passed rule in order until it finds one that matches. If none of those rules match, the whole *OR* does not match.
+- `rule *rule_and(rule r0, ...)`: is again a function with variable rule pointer arguments, and has to be terminated with a `NULL`. This time, all the rules have to match in order.
+- `rule *range(char c1, char c2)`: creates a range of rules in *OR*. Either of the characters ranging in order from `c1` to `c2`, including the bounds, will match.
+- `rule *repeat(rule *r, int n)`: repeats the rule `r` `n` times. It will only make sense to use it inside of a `rule_and()` definition.
+- `rule *optional(rule *r)`: makes the rule `r` optional, it can be matched either 0 times or 1.
+- `rule *rule_zero_or_more(rule *r)`: will let `r` be matched zero or more times.
+- `rule *rule_one_or_more(rule *r)`: will let `r` be matched one or more times.
+
+### Abstract syntax trees
 
 Ast operations:
 
@@ -25,8 +57,6 @@ Ast operations:
 - **FLATTEN**
 
 Tree exploration:
-
-Including Spl in your project is simple, just copy the `.c` and `.h` files in one of your projects subdirectories and add the `.c` files to your compilers sources.
 
 ## An example: the Json format
 
@@ -103,7 +133,7 @@ optional_exponential_part = rule_optional(exponential_part);
 number = rule_and(optional_minus, non_decimal_part, optional_decimal_part, optional_exponential_part, NULL);
 ```
 
-We are keeping references to the intermediate rules, such as `digit`, not only to keep code clean and possibly reuse our carefully built rules, but also to clean the AST of unwanted nodes that were added because of those very intermediate rules.
+We are keeping references to the intermediate rules, such as `digit`, not only to keep code clean and possibly reuse our carefully built rules, but also to later clean the AST of unwanted nodes that were added because of those very intermediate rules.
 
 ### Strings
 
@@ -199,7 +229,7 @@ graph TD
  many_elements_array --> rsb2["]"]
 ```
 
-Arrays have rules also for whitespaces, which can be space characters, tabs, and new lines. Note that we are not defining what a value is for now, we are only declaring it. 
+Arrays have rules also for whitespaces, which can be space characters, tabs, and new lines. Note that we are not defining what a value is for now, we are only declaring it.
 
 ```c
 value = rule_new();
@@ -271,7 +301,6 @@ And it would totally work. Note that in this case we have to be careful with the
      this rule matching succedes, and the parsing continues.
 ```
 
-
 In general, and critically when rules share the same prefix, the children of *OR* rules should be sorted by their *specificity*. First the most specific (and longer), then the more general ones (and shorter).
 
 ### Objects
@@ -326,7 +355,6 @@ many_members_object = rule_and(lcb, ws, one_or_more_members, ws, member, ws, rcb
 object = rule_or(empty_object, one_member_object, many_members_object, NULL);
 ```
 
-
 ### Values altogether
 
 There are still a couple of values that Json allows for: *booleans* and *nulls*:
@@ -352,7 +380,7 @@ boolean = rule_or(boolean_false, boolean_true, NULL);
 null = rule_literal("null");
 ```
 
-Finally, we can define *Values* as either *numbers*, *strings*, *booleans*, *nulls*, *arrays* or *objects*.
+Finally, we can define *values* as either *numbers*, *strings*, *booleans*, *nulls*, *arrays* or *objects*.
 
 ```mermaid
 graph TD
@@ -382,4 +410,8 @@ value->childs[5] = object;
 
 # Future extensions
 
-Despite this library is flawed and in some bits inefficient, it could power a real programming language, so that's an idea for a future extension...
+This project was brought forwards for familiarizing with the patterns and software engineering discipline in the C language. It made very little use of AI, I really tried to bump my head on bugs before resigning to ask one thing or two about the `ast_collapse_recursive` function.
+
+- [ ] Adding parsing capabilities for files, directly. The file contents should not be first saved to a single string in memory, especially if the file is greater than the available memory.
+- [ ] Memory usage criticalities should be sanitized. [Address sanitizer](https://clang.llvm.org/docs/AddressSanitizer.html) was used to detect some faults in memory management, which are still present :).
+- [ ] Despite this library is flawed and in some bits inefficient, it could power a real programming language, so that's an idea for a future extension...
