@@ -13,7 +13,6 @@ typedef struct ast {
 	int n_childs;
 
 	int ruleid;
-	// char c; // TODO: move to char
 
 	char *name;
 	char *content;

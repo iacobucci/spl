@@ -16,13 +16,12 @@ Which consumes some `text` as input and determines if it respects the grammar ru
 
 ```c
 char *text = "123";
-rule *num = rule_one_or_more(rule_range('0', '9'));
+rule *num = rule_add_name(rule_one_or_more(rule_range('0', '9')), "num");
 parse_result pr = parse(text, num);
-ast *a = pr.node;
-
-ast_collapse(a, num);
 
 if (pr.matched == MATCHED) {
+	ast *a = pr.node;
+	ast_collapse(a, num);
 	char *s = ast_to_string(a);
 	printf("%s\n", s); // {"content":"123"}
 	free(s);
@@ -39,6 +38,9 @@ A `parse_result` struct has a `matched` field that can be either `MATCHED` or `N
 To define a grammar we need to define rules for it, and `rule.h` provides some methods to help us with that.
 
 - `rule *rule_c(char c)`: creates a rule that matches a character `c`.
+
+This is the fundamental building block for our grammars: complex behaviour can emerge with the use of **combinators**.
+
 - `rule *rule_literal(char *literal)`: creates a rule that matches a non-ambiguous sequence of characters, `literal`.
 - `rule *rule_or(rule r0, ...)`: is a function with variable arguments: rules that can match alternatively. It has to be terminated with a `NULL` value. The parser tries every passed rule in order until it finds one that matches. If none of those rules match, the whole *OR* does not match.
 - `rule *rule_and(rule r0, ...)`: is again a function with variable rule pointer arguments, and has to be terminated with a `NULL`. This time, all the rules have to match in order.
@@ -46,17 +48,81 @@ To define a grammar we need to define rules for it, and `rule.h` provides some m
 - `rule *repeat(rule *r, int n)`: repeats the rule `r` `n` times. It will only make sense to use it inside of a `rule_and()` definition.
 - `rule *optional(rule *r)`: makes the rule `r` optional, it can be matched either 0 times or 1.
 - `rule *rule_zero_or_more(rule *r)`: will let `r` be matched zero or more times.
-- `rule *rule_one_or_more(rule *r)`: will let `r` be matched one or more times.
+- `rule *rule_one_or_more(rule *r)`: will let `r` be matched one or more times. Internally *a one or more* rule is defined as: `rule *rule_one_or_more(rule *r) {return rule_and(r, rule_zero_or_more(r), NULL); }`. The effects of this are showed below.
+
+There are
+- `rule *rule_add_name(rule *r, char *name)`: gives a name to a rule. After parsing, AST nodes that derived from `r`'s match will inherit the same name.
+- `rule *rule_add_callback(rule *r, void (*callback)(ast *self))`: sets a `void callback(ast *self)` function to a rule. AST nodes that derive from `r`'s match will be able to call the `callback` function on themselves.
+- `char *rule_print(rule *r)`: prints a rule, recursively with its children rules, to standard output and in Json format. Already printed rules are omitted, to avoid infinite loops in circular definitions. The output from from the snippet [above](#features):
+
+```json
+{ "name": "num", "method": "AND", "definition": [
+	{ "method": "OR", "definition": [
+		{ "c": "0" },
+		{ "c": "1" },
+		{ "c": "2" },
+		{ "c": "3" },
+		{ "c": "4" },
+		{ "c": "5" },
+		{ "c": "6" },
+		{ "c": "7" },
+		{ "c": "8" },
+		{ "c": "9" }
+	]},
+	{ "method": "ZERO_OR_MORE", "definition": [
+		{ "method": "OR", "already_printed": true }
+	]}
+]}
+```
 
 ### Abstract syntax trees
 
-Ast operations:
+After successful parsing, Abstract syntax tree is the data structure that can be explored by the user of this library. Here is the type definition:
 
-- **WIPE**
-- **SIMPLIFY**
-- **FLATTEN**
+```c
+typedef struct ast {
+	struct ast *parent;
+	struct ast *child;
+	struct ast *next;
+	struct ast *prev;
+	int n_childs;
 
-Tree exploration:
+	int ruleid;
+
+	char *name;
+	char *content;
+
+	void (*callback)(struct ast *self);
+} ast;
+```
+
+In the snippet [above](#features), after the text has been parsed, the resulting abstract syntax tree corresponds to: 
+
+```json
+{"name": "num", "children": [
+	{"children": [
+		{"content": "1"}
+	]},
+	{"children": [
+		{"children": [
+			{"content": "2"}
+		]},
+		{"children": [
+			{"content": "3"}
+		]}
+	]}
+]}
+```
+
+Notice how this structure matches the one of the rule. The rule method is now omitted but, for the `ZERO_OR_MORE` rule, two children nodes have matched: the one with inner content `"2"` and the one with inner content `"3"`.
+
+Trees like this can be very redundant, so it is a good idea to **clean** them with the use of the following functions:
+
+- `void ast_wipe(ast *node, struct rule* r)`: this function explores `node`, and strips it of any branch that was added because of a rule `r`.
+- `void ast_collapse(ast *node, struct rule* rule)`: this function alters `node` in such a way that the content of *all the branches that origin from a node added because of a rule `r`* is collapsed into the content of that very node. Children nodes are thus removed.
+- `void ast_simplify(ast *node, struct rule* rule)`: this function removes unwanted nodes but keeps their children. `node` is explored and every time a node that was added because of a rule `r` is met, that very node is taken away, and its children are assigned to its parent node.
+
+For consuming the parsed AST, the programmer has freedom in choice. One might consider [depth first search](https://en.wikipedia.org/wiki/Depth-first_search) or [breadth first search](https://en.wikipedia.org/wiki/Breadth-first_search).
 
 ## An example: the Json format
 
@@ -407,6 +473,65 @@ value->childs[3] = null;
 value->childs[4] = array;
 value->childs[5] = object;
 ```
+
+### Cleaning the tree
+
+The function `json_parse` is provided. This function tries to create an abstract syntax tree from the text `str`, and then cleans the tree of nodes that originated from intermediate rules:
+
+1. First, characters such as double quotes, double dots, commas and brackets are removed. Empty arrays and empty objects are also wiped.
+1. Then, strings, nulls, booleans and numbers are collapsed into a single node.
+1. Lastly, intermediate rules are simplified: their purpose has been achieved.
+
+```c
+parse_result json_parse(char *str) {
+	parse_result pr = parse(str, value);
+	ast *root = pr.node;
+
+	ast_wipe(root, dq);
+	ast_wipe(root, ws);
+	ast_wipe(root, comma);
+	ast_wipe(root, lsb);
+	ast_wipe(root, rsb);
+	ast_wipe(root, lcb);
+	ast_wipe(root, rcb);
+	ast_wipe(root, double_dots);
+
+	ast_wipe(root, empty_array);
+	ast_wipe(root, empty_object);
+
+	ast_collapse(root, null);
+	ast_collapse(root, boolean);
+	ast_collapse(root, string);
+	ast_collapse(root, number);
+
+	ast_simplify(root, value_and_comma);
+	ast_simplify(root, one_element_array);
+	ast_simplify(root, many_elements_array);
+	ast_simplify(root, one_or_more_values);
+
+	ast_simplify(root, member_and_comma);
+	ast_simplify(root, one_or_more_members);
+	ast_simplify(root, one_member_object);
+	ast_simplify(root, many_members_object);
+
+	ast_simplify(root, value);
+
+	return pr;
+}
+```
+
+Here is an instance of a Json parse, the text:
+
+```json
+{"cane": ["a", 1, -1, 0.34234, {"empty": [[]]}, -723.23, 2E10, -0.12e226, null], "CAPRA": {"cavallo": false}}
+```
+
+is parsed into:
+
+```json
+{"name":"value","children":[{"name":"object","children":[{"name":"member","children":[{"name":"string","content":"cane"},{"name":"array","children":[{"name":"string","content":"a"},{"name":"number","content":"1"},{"name":"number","content":"-1"},{"name":"number","content":"0.34234"},{"name":"object","children":[{"name":"member","children":[{"name":"string","content":"empty"},{"name":"array","children":[{"name":"array"}]}]}]},{"name":"number","content":"-723.23"},{"name":"number","content":"2E10"},{"name":"number","content":"-0.12e226"},{"name":"null","content":"null"}]}]},{"name":"member","children":[{"name":"string","content":"CAPRA"},{"name":"object","children":[{"name":"member","children":[{"name":"string","content":"cavallo"},{"name":"boolean","content":"false"}]}]}]}]}]}
+```
+
 
 # Future extensions
 

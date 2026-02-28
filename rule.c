@@ -190,8 +190,6 @@ void rule_print_recursive(rule *r, int print_comma) {
 	else
 		printf("{ \"name\": \"%s\", ", r->name);
 
-	printf("{ ");
-
 	if (r->c != '\0') {
 		char c = r->c;
 		switch (c) {
