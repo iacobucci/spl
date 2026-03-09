@@ -1,6 +1,6 @@
-#include "ast.h"
-#include "json.h"
-#include "parser.h"
+#include "../ast.h"
+#include "../json.h"
+#include "../parser.h"
 
 #include <stdio.h>
 #include <stdlib.h>
