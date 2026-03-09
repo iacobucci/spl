@@ -18,8 +18,6 @@ sanitize:
 	./main.out
 
 check:
-	valgrind --leak-check=full ./main.out
+	distrobox enter debian -- valgrind --leak-check=full ./main.out
 
-# prlimit
-
-.PHONY: dev compile main.out
+.PHONY: dev compile sanitize compile

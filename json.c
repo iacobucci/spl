@@ -268,7 +268,7 @@ void json_init() {
 
 	null = rule_add_name(rule_literal("null"), "null");
 
-	value->name = strdup("value");
+	value->name = "value";
 	value->method = OR;
 	value->n_childs = 6;
 	value->childs = malloc(sizeof(rule *) * value->n_childs);

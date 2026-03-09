@@ -85,6 +85,7 @@ parse_result parse_recursive(char *text, rule *r) {
 
 			if (result.matched != MATCHED) {
 				result.remaining = original_text;
+				ast_free(&ast_and);
 				return result;
 			}
 
@@ -162,14 +163,18 @@ void parse_result_free(parse_result pr) {
 }
 
 void parse_assert_free(char *text, rule *r, int how) {
-	assert(parse(text, r).matched == how);
+	parse_result pr = parse(text, r);
+	assert(pr.matched == how);
+	parse_result_free(pr);
 	rule_free(&r);
 	if (PARSER_DEBUG)
 		printf("\n");
 }
 
 void parse_assert(char *text, rule *r, int how) {
-	assert(parse(text, r).matched == how);
+	parse_result pr = parse(text, r);
+	assert(pr.matched == how);
+	parse_result_free(pr);
 	if (PARSER_DEBUG)
 		printf("\n");
 }

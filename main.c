@@ -3,6 +3,7 @@
 #include "parser.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 int main() {
 	parse_result pr;
@@ -21,6 +22,7 @@ int main() {
 	if (pr.matched == MATCHED) {
 		char *s = ast_to_string(pr.node);
 		printf("%s\n", s);
+		free(s);
 	}
 	parse_result_free(pr);
 

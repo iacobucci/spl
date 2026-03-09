@@ -9,25 +9,15 @@
 #define TO_ADD_INITIAL_BUFFER_LENGTH 4
 
 ast *ast_new(char *content, char *name) {
-	ast *result = malloc(sizeof(ast));
+	ast *result = calloc(1, sizeof(ast));
 
 	error_check_malloc(result);
 
 	if (content != NULL)
 		result->content = strdup(content);
-	else
-		result->content = NULL;
 
 	if (name != NULL)
 		result->name = strdup(name);
-	else
-		result->name = NULL;
-
-	result->n_childs = 0;
-	result->child = NULL;
-	result->parent = NULL;
-	result->next = NULL;
-	result->prev = NULL;
 
 	result->ruleid = -1;
 	return result;
@@ -178,7 +168,8 @@ void ast_wipe(ast *node, rule *r) {
 		if (node->next != NULL)
 			node->next->prev = node->prev;
 
-		ast_free_individual_node(node);
+		node->next = NULL;
+		ast_free(&node);
 	} else {
 		ast_wipe(node->child, r);
 	}
@@ -337,46 +328,53 @@ void ast_print_recursive(ast *node, int depth, int print_next) {
 
 void ast_print(ast *node) { ast_print_recursive(node, 0, 1); }
 
+void ast_to_string_append(char **buf, char *s) {
+	char *temp = *buf;
+	*buf = string_concat(*buf, s);
+	if (temp != NULL)
+		free(temp);
+}
+
 void ast_to_string_recursive(ast *node, int depth, int print_next, char **buf) {
 	while (node != NULL) {
 
 		if (node->name == NULL)
-			*buf = string_concat(*buf, "{");
+			ast_to_string_append(buf, "{");
 		else {
 			int needed = snprintf(NULL, 0, "{\"name\":\"%s\"", node->name) + 1;
 			char *local = malloc(needed * sizeof(char));
 			sprintf(local, "{\"name\":\"%s\"", node->name);
-			*buf = string_concat(*buf, local);
+			ast_to_string_append(buf, local);
 			free(local);
 		}
 
 		if (node->name && node->content)
-			*buf = string_concat(*buf, ",");
+			ast_to_string_append(buf, ",");
 
 		if (node->content != NULL) {
 			int needed =
 				snprintf(NULL, 0, "\"content\":\"%s\"", node->content) + 1;
 			char *local = malloc(needed * sizeof(char));
 			sprintf(local, "\"content\":\"%s\"", node->content);
-			*buf = string_concat(*buf, local);
+			ast_to_string_append(buf, local);
 			free(local);
 		}
 
 		if ((node->name || node->content) && node->child)
-			*buf = string_concat(*buf, ",");
+			ast_to_string_append(buf, ",");
 
 		if (node->child != NULL) {
-			*buf = string_concat(*buf, "\"children\":[");
+			ast_to_string_append(buf, "\"children\":[");
 
 			ast_to_string_recursive(node->child, depth + 1, 1, buf);
 
-			*buf = string_concat(*buf, "]}");
+			ast_to_string_append(buf, "]}");
 		} else {
-			*buf = string_concat(*buf, "}");
+			ast_to_string_append(buf, "}");
 		}
 
 		if (node->next) {
-			*buf = string_concat(*buf, ",");
+			ast_to_string_append(buf, ",");
 		}
 
 		if (print_next == 0)

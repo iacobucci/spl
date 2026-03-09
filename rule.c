@@ -12,17 +12,11 @@ int RULE_DEPTH = 0;
 int rule_new_id() { return RULE_ID++; }
 
 rule *rule_new() {
-	rule *result = malloc(sizeof(rule));
+	rule *result = calloc(1, sizeof(rule));
 	error_check_malloc(result);
 
-	result->c = '\0';
-	result->childs = NULL;
 	result->id = rule_new_id();
-	result->n_childs = 0;
-	result->parent = NULL;
-
 	result->repeats = 1;
-	result->visited = 0;
 	return result;
 }
 
@@ -259,16 +253,13 @@ void rule_print_recursive(rule *r, int print_comma) {
 }
 
 void rule_clean_visited(rule *r) {
-	if (r == NULL)
+	if (r == NULL || r->visited == 0)
 		return;
 
-	if (r->visited != 0)
-		for (int i = 0; i < r->n_childs; i++) {
-			r->childs[i]->visited = 0;
-			rule_clean_visited(r->childs[i]);
-		}
-
 	r->visited = 0;
+	for (int i = 0; i < r->n_childs; i++) {
+		rule_clean_visited(r->childs[i]);
+	}
 }
 
 void rule_print(rule *r) {
@@ -276,37 +267,45 @@ void rule_print(rule *r) {
 	rule_print_recursive(r, 0);
 }
 
-void rule_free_recursive(rule **rp) {
-	if (rp == NULL)
-		return;
-
-	rule *r = *rp;
-
-	if (r == NULL)
-		return;
-
-	if (r->visited)
+void rule_get_all(rule *r, rule ***list, int *count, int *capacity) {
+	if (r == NULL || r->visited)
 		return;
 
 	r->visited = 1;
 
+	if (*count >= *capacity) {
+		*capacity *= 2;
+		*list = realloc(*list, sizeof(rule *) * (*capacity));
+		error_check_malloc(*list);
+	}
+	(*list)[(*count)++] = r;
+
 	for (int i = 0; i < r->n_childs; i++) {
-		rule_free_recursive(&(r->childs[i]));
+		rule_get_all(r->childs[i], list, count, capacity);
 	}
-
-	if (r->n_childs > 0 && r->childs != NULL) {
-		free(r->childs);
-	}
-
-	if (r != NULL)
-		free(r);
-
-	*rp = NULL;
 }
 
 void rule_free(rule **rp) {
+	if (rp == NULL || *rp == NULL)
+		return;
+
 	rule_clean_visited(*rp);
-	rule_free_recursive(rp);
+
+	int count = 0;
+	int capacity = 10;
+	rule **list = malloc(sizeof(rule *) * capacity);
+	error_check_malloc(list);
+
+	rule_get_all(*rp, &list, &count, &capacity);
+
+	for (int i = 0; i < count; i++) {
+		rule *r = list[i];
+		if (r->childs != NULL)
+			free(r->childs);
+		free(r);
+	}
+	free(list);
+	*rp = NULL;
 }
 
 void rule_callback(rule *r, ast *self) {
