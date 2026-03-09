@@ -20,4 +20,4 @@ sanitize:
 check:
 	distrobox enter debian -- valgrind --leak-check=full ./main.out
 
-.PHONY: dev compile sanitize compile
+.PHONY: dev compile sanitize compile check
