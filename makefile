@@ -33,7 +33,7 @@ clean:
 # profiling
 
 sanitize:
-	gcc -O0 -g -fsanitize=address $(SRCS) -o main.out
+	gcc -O0 -g -fsanitize=address $(SRCS) examples/main.c -o main.out
 	./main.out
 
 check:
